@@ -1,0 +1,68 @@
+#:kivy 1.0
+#:import kivy kivy
+#:import win kivy.core.window
+
+# Read the Python file first which makes this a bit less random
+
+
+# This code is much like CSS mixed w/ HTML
+# It establishes the visual appearance of the widgets defined in __main__.py
+# My general practice is to define any static attributes of widgets here,
+# allowing items that will be changed to be set by the python logic
+
+<Map>:
+  canvas:
+    Rectangle:
+      source: 'images/map.png'
+      size: (1049, 700)
+      pos: self.pos
+
+# Used to mark the algorithm's "boat"
+<Marker>:
+  canvas:
+    Rectangle:
+      source: 'images/ipdot.png'
+      size:   (5, 5)
+      pos:    self.pos
+
+# Used to mark the human sailor
+<MarkerGreen>:
+  canvas:
+    Rectangle:
+      source: 'images/ipdot_green.png'
+      size: (5, 5)
+      pos: self.pos
+
+# Widget to contain children representing environmental data
+# These are currently text based but ideally will be graphical 
+# like RudderPosition
+<EnvData>:
+  Label:
+    text: "Wind Direction: " + root.wind_direction
+  Label:
+    text: "Wind Speed: " + root.wind_speed
+  Label:
+    text: "Appr Wind Direction: " + root.app_wind_direction
+  Label:
+    text: "Appr Wind Speed: " + root.app_wind_speed
+  
+# Contains specific "decision" data that the algorithm made
+# e.g. Rudder and sail position as well as what it's current
+# micro-goal (waypoint) is
+<AlgorData>:
+  Button:
+    text: "Sail Position"
+  Button:
+    text: "Velocity"
+
+# Shows a visual (and eventually text) representation of the rudder angle
+<RudderPosition>:
+  canvas:
+    Color:
+      rgb: 0, 1, 0
+    Ellipse:
+      size: (200, 200)
+      pos: self.pos
+    Color:
+      rgb: 1, 0, 0
+        
