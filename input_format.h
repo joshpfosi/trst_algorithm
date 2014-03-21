@@ -1,6 +1,6 @@
 /*   File: input_format.h
  *   By: Alex Tong, Date: Fri Mar 21
- *   Last Updated: Fri Mar 21 18:39:21
+ *   Last Updated: Fri Mar 21 19:09:10
  *
  *  input formatting information for TRST robotic sailing project
  */
@@ -24,12 +24,11 @@
 
 
 /* enviroment input defines */
-#define num_env_mems        4
-#define num_boat_mems       4
 #define num_mems            8
-#define data_format_string  "%f;%f;%f;%f;%f;%f;%f;%f\n"
-#define data_args           &(env->dat[0]), &(env->dat[1]), &(env->dat[2]),\
-                            &(env->dat[3]), &(boat->dat[0]), &(boat->dat[1]),\
-                            &(boat->dat[2]), &(boat->dat[3])
+#define data_format_string  "%f;%f;%f;%f;%f;%f;%f;%f;%f\n"
+#define data_args           &(env->wind_dir), &(env->wind_speed),\
+                            &(env->app_wind_dir), &(env->app_wind_speed),\
+                            &(boat->rud_pos), &(boat->sail_pos),\
+                            &(boat->lat), &(boat->lon), &(boat->heading)
 
 

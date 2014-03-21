@@ -1,6 +1,6 @@
 /*   File: main.c
  *   By: Alex Tong, Date: Tue Mar 11
- *   Last Updated: Fri Mar 21 18:56:50
+ *   Last Updated: Fri Mar 21 19:02:52
  *
  *   main file for TRST project
  *   Arg: File w/ semicolon delimited list of doubles
@@ -63,9 +63,11 @@ int sail_boat(FILE *input) {
     size_t len = 0;
 
     /* reads in env and boat data */
-    while (getline(&line, &len, input) != -1) {
-        if (parse_line(line, env, boat) == 0) {
-            pilot(env, boat);
+    while (getline(&line, &len, input) != -1) {     /* read in line fine */
+        if (update_state(line, env, boat) == 0) {     /* read in data fine */
+            if ((status = pilot(env, boat)) != 0) { /* unresolvable issue */
+                return status;
+            }
         }
     }
 
@@ -73,6 +75,6 @@ int sail_boat(FILE *input) {
     free(env);
     free(boat);
 
-    return status;
+    return 0;
 }
 

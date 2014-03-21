@@ -1,6 +1,6 @@
 /*   File: input.c
  *   By: Alex Tong, Date: Tue Mar 11
- *   Last Updated: Fri Mar 21 18:57:13
+ *   Last Updated: Fri Mar 21 19:02:52
  *
  *  file for reading in input as specified in input_format.h
  */
@@ -11,7 +11,7 @@
 #include "input_format.h"
 
 /* reads a data string into boat and enviroment data */
-int parse_line(char *data, Env_data env, Boat_data boat)
+int update_state(char *data, Env_data env, Boat_data boat)
 {
     /* read env */
     int re = sscanf(data, data_format_string, data_args);
