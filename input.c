@@ -1,6 +1,6 @@
 /*   File: input.c
  *   By: Alex Tong, Date: Tue Mar 11
- *   Last Updated: Fri Mar 21 19:02:52
+ *   Last Updated: Sat Mar 22 10:43:54
  *
  *  file for reading in input as specified in input_format.h
  */
@@ -8,18 +8,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "input.h"
-#include "input_format.h"
+#include "state_rep.h"
 
 /* reads a data string into boat and enviroment data */
 int update_state(char *data, Env_data env, Boat_data boat)
 {
     /* read env */
-    int re = sscanf(data, data_format_string, data_args);
+    int re = sscanf(data, DATA_FORMAT_STRING, DATA_ARGS);
 
     /* Skip badly formed lines */
-    if (re != num_mems) {
+    if (re != NUM_MEMS) {
         fprintf(stderr, "Error reading data, read in: %d / %d necessary "
-                "members\n", re, num_mems);
+                "members\n", re, NUM_MEMS);
         return 1;
     }
 

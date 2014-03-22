@@ -1,6 +1,6 @@
 /*   File: high_level.c
  *   By: Joshua Pfosi, Date: Fri Mar 21
- *   Last Updated: Fri Mar 21 23:34:03
+ *   Last Updated: Sat Mar 22 10:41:56
  *
  *   Implementation of navigator for algorithm
  *   Takes in input from sensor, parsed by main.c in a loop and decides
@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include "input.h"
+#include "state_rep.h"
 
 #define MAX_WAYPTS 10
 
