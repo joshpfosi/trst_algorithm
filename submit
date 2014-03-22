@@ -3,12 +3,12 @@
 # bash script to automatically add, commit, push trst code
 # args: commit message
 
-echo "\n-------------------------- Adding all changes to Git --------------------------\n"
+echo "\n-------------------------- Adding all changes to Git ---------------------------\n"
 git add -A
 git status
-echo "\n------------------------- Commiting all changes to Git ------------------------\n"
+echo "\n------------------------- Commiting all changes to Git -------------------------\n"
 git commit -m "$1"
-echo "\n------------------------ Pushing all changes to Github ------------------------\n"
+echo "\n------------------------ Pushing all changes to Github -------------------------\n"
 git push
-echo "\n------------------------------ Current Git Status -----------------------------\n"
+echo "\n------------------------------ Current Git Status ------------------------------\n"
 git status

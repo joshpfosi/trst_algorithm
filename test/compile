@@ -28,6 +28,11 @@ case $link in
               linked=yes ;;
 esac
 
+case $link in
+  all|update_state_test) gcc $FLAGS -o update_state_test update_state_test.o
+              linked=yes ;;
+esac
+
 rm -rf *.o  # make sure no object files are left hanging around
 
 # error if asked to link something we didn't recognize
