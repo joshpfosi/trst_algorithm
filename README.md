@@ -1,6 +1,4 @@
-File: README
-By: Joshua Pfosi and Alex Tong, Date: Sat Mar 22
-Last Updated: Sat Mar 22
+By: Joshua Pfosi Alex Tong, Denali Rao
 
 MAIN
 ====
