@@ -3,11 +3,11 @@
 # bash script to automatically add, commit, push trst code
 # args: commit message
 
-echo "git status"
-git status
-echo "git add ."
+echo "git add -A"
 git add .
 echo "git commit -m \"$1\""
 git commit -m "$1"
 echo "git push"
 git push
+echo "git status"
+git status
