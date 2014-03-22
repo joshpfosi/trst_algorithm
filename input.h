@@ -1,6 +1,6 @@
 /*   File: input.h
  *   By: Alex Tong, Date: Tue Mar 11
- *   Last Updated: Fri Mar 21 19:08:41
+ *   Last Updated: Fri Mar 21 21:29:18
  *
  *  header file for getting input data on robotic sailboat TRST project
  */
@@ -11,6 +11,12 @@
 #include <stdio.h>
 #include "input_format.h"
 
+/* stores lat/lon info in convenient package */
+typedef struct Position {
+    float lat;
+    float lon;
+} Position;
+
 /* stores the data read in in *read in* order,
    use define statements in input_format.h to use data */
 typedef struct Env_data {
@@ -20,8 +26,18 @@ typedef struct Env_data {
 /* stores the data read in in *read in* order,
    use define statements in input_format.h to use data */
 typedef struct Boat_data {
-    float rud_pos, sail_pos, lat, lon, heading;
+    float rud_pos, sail_pos, heading;
+    Position pos;
 } *Boat_data;
+
+/* bundles complete state of navigator */
+typedef struct Navigator {
+    Env_data env;
+    Boat_data boat;
+    Position *waypts;
+    unsigned current_waypt;
+    unsigned num_waypts;
+} *Navigator;
 
 /* Args: semicolon delimited list of doubles, Env_data and Boat_data
  * Purpose: Populates env and boat with data

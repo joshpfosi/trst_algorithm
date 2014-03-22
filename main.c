@@ -1,6 +1,6 @@
 /*   File: main.c
  *   By: Alex Tong, Date: Tue Mar 11
- *   Last Updated: Fri Mar 21 19:02:52
+ *   Last Updated: Fri Mar 21 21:20:41
  *
  *   main file for TRST project
  *   Arg: File w/ semicolon delimited list of doubles
@@ -25,8 +25,7 @@
 #include <stdio.h>
 #include "input.h"
 
-int sail_boat(FILE *input);
-extern int pilot(Env_data, Boat_data);
+extern int navigate(FILE *input);
 
 int main(int argc, char **argv) {
 
@@ -43,7 +42,8 @@ int main(int argc, char **argv) {
     else /* num_args == 2 so use filename */
         fp = open_or_abort(argv[1], "r");
 
-    exit_status = sail_boat(fp);
+    /* start main program */
+    exit_status = navigate(fp);
     fclose(fp);
 
     if (exit_status != 0) {
@@ -51,30 +51,5 @@ int main(int argc, char **argv) {
         return exit_status;
     }
     return exit_status;
-}
-
-int sail_boat(FILE *input) {
-
-    /* Code to read in waypoints and send them to high level decider HERE */
-    Env_data env = malloc(sizeof(env));
-    Boat_data boat = malloc(sizeof(boat));
-    int status = 0;
-    char *line = NULL;
-    size_t len = 0;
-
-    /* reads in env and boat data */
-    while (getline(&line, &len, input) != -1) {     /* read in line fine */
-        if (update_state(line, env, boat) == 0) {     /* read in data fine */
-            if ((status = pilot(env, boat)) != 0) { /* unresolvable issue */
-                return status;
-            }
-        }
-    }
-
-    free(line);
-    free(env);
-    free(boat);
-
-    return 0;
 }
 
