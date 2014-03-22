@@ -1,8 +1,8 @@
-/*   File: input_format.h
+/*   File: state_rep.h
  *   By: Alex Tong, Date: Fri Mar 21
- *   Last Updated: Sat Mar 22 10:43:42
+ *   Last Updated: Sat Mar 22 11:07:41
  *
- *  input formatting information for TRST robotic sailing project
+ *  Input formatting and general struct definitions
  */
 
 #ifndef STATE_REP_H
@@ -22,14 +22,12 @@ typedef struct Position {
     float lon;
 } Position;
 
-/* stores the data read in in *read in* order,
-   use define statements in input_format.h to use data */
+/* stores environmental data */
 typedef struct Env_data {
     float wind_dir, wind_speed, app_wind_dir, app_wind_speed;
 } *Env_data;
 
-/* stores the data read in in *read in* order,
-   use define statements in input_format.h to use data */
+/* stores boat related data */
 typedef struct Boat_data {
     float rud_pos, sail_pos, heading;
     Position pos;

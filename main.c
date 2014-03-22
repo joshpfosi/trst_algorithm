@@ -1,19 +1,10 @@
 /*   File: main.c
  *   By: Alex Tong, Date: Tue Mar 11
- *   Last Updated: Sat Mar 22 10:52:01
+ *   Last Updated: Sat Mar 22 11:02:52
  *
  *   main file for TRST project
- *   Arg: File w/ semicolon delimited list of doubles
- *   Format: Parses list into two partitions:
- *           1) General goal information (i.e. waypoints)
- *           2) Sailing data (second by second data)
- *   Environment and boat data passed to high level decision maker
- */
-
-/* test engine will be file w/ ENVIRONMENTAL data and FIRST line with 
- * waypoint(s), and SECOND line with rudder, sail position, and 
- * current heading  - them env data is read and the boat state is 
- * mutated
+ *   Args: Optional filename
+ *   Purpose: Sets up file handler for read_data to use
  */
 
 /* If you want a vimrc script to automatically place my style of heading at 
@@ -48,7 +39,6 @@ int main(int argc, char **argv) {
 
     if (exit_status != 0) {
         fprintf(stderr, "Aborting due to unresolvable input error\n");
-        return exit_status;
     }
     return exit_status;
 }

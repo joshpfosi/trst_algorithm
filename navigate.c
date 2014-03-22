@@ -1,6 +1,6 @@
 /*   File: high_level.c
  *   By: Joshua Pfosi, Date: Fri Mar 21
- *   Last Updated: Sat Mar 22 10:51:45
+ *   Last Updated: Sat Mar 22 11:05:56
  *
  *   Implementation of navigator for algorithm
  *   Takes in input from sensor, parsed by main.c in a loop and decides
@@ -18,6 +18,10 @@
 int skipper(Navigator nav);
 unsigned read_waypts(FILE *fp, Position *waypts);
 
+/* Args: Viable file for sensor input
+ * Purpose: Parse input and pass data to skipper
+ * Returns 0 if no errors, otherwise nonzero
+ */
 int read_data(FILE *input) {
 
     /* holds entire state of navigator - passed to pilot */
@@ -44,7 +48,7 @@ int read_data(FILE *input) {
     }
 
     free(line);
-    /* possibly leaking mem due to nav/env/boat/waypoints/position */
+    /* possibly leaking mem due to Position */
     free(nav->waypts);
     free(nav->boat);
     free(nav->env);

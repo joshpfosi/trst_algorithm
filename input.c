@@ -1,8 +1,8 @@
 /*   File: input.c
  *   By: Alex Tong, Date: Tue Mar 11
- *   Last Updated: Sat Mar 22 10:43:54
+ *   Last Updated: Sat Mar 22 11:06:09
  *
- *  file for reading in input as specified in input_format.h
+ *  file for reading in input as specified in state_rep.h
  */
 
 #include <stdio.h>
