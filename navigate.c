@@ -1,6 +1,6 @@
 /*   File: high_level.c
  *   By: Joshua Pfosi, Date: Fri Mar 21
- *   Last Updated: Fri Mar 21 22:27:49
+ *   Last Updated: Fri Mar 21 23:34:03
  *
  *   Implementation of navigator for algorithm
  *   Takes in input from sensor, parsed by main.c in a loop and decides
@@ -65,6 +65,7 @@ unsigned read_waypts(FILE *fp, Position *waypts) {
     for (i = 0; i < num_waypoints; ++i) {
         fscanf(fp, "%f,%f;", &(waypts[i].lat), &(waypts[i].lon));
     }
+    fgetc(fp); /* discard the newline */
 
     free(line);
     return num_waypoints;
