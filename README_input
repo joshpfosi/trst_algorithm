@@ -1,4 +1,0 @@
-README_input
-C:12/3/14 M:12/3/14
-
-This module is responsible for converting enviroment and boat data from a text stream into accessible data members. Use input_format.h to configure the input and output formats.

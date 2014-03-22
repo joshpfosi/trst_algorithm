@@ -1,6 +1,6 @@
 /*   File: main.c
  *   By: Alex Tong, Date: Tue Mar 11
- *   Last Updated: Fri Mar 21 21:20:41
+ *   Last Updated: Sat Mar 22 10:52:01
  *
  *   main file for TRST project
  *   Arg: File w/ semicolon delimited list of doubles
@@ -25,7 +25,7 @@
 #include <stdio.h>
 #include "input.h"
 
-extern int navigate(FILE *input);
+extern int read_data(FILE *input);
 
 int main(int argc, char **argv) {
 
@@ -43,7 +43,7 @@ int main(int argc, char **argv) {
         fp = open_or_abort(argv[1], "r");
 
     /* start main program */
-    exit_status = navigate(fp);
+    exit_status = read_data(fp);
     fclose(fp);
 
     if (exit_status != 0) {

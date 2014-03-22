@@ -1,6 +1,6 @@
 /*   File: high_level.c
  *   By: Joshua Pfosi, Date: Fri Mar 21
- *   Last Updated: Sat Mar 22 10:41:56
+ *   Last Updated: Sat Mar 22 10:51:45
  *
  *   Implementation of navigator for algorithm
  *   Takes in input from sensor, parsed by main.c in a loop and decides
@@ -15,10 +15,10 @@
 
 #define MAX_WAYPTS 10
 
-int pilot(Navigator nav);
+int skipper(Navigator nav);
 unsigned read_waypts(FILE *fp, Position *waypts);
 
-int navigate(FILE *input) {
+int read_data(FILE *input) {
 
     /* holds entire state of navigator - passed to pilot */
     Navigator nav = malloc(sizeof(*nav));
@@ -37,7 +37,7 @@ int navigate(FILE *input) {
     /* may replace getline with fgets in future */
     while (getline(&line, &len, input) != -1) {     /* read in line fine */
         if (update_state(line, nav->env, nav->boat) == 0) {     /* read in data fine */
-            if ((status = pilot(nav)) != 0) { /* unresolvable issue */
+            if ((status = skipper(nav)) != 0) { /* unresolvable issue */
                 return status;
             }
         }
@@ -75,7 +75,7 @@ unsigned read_waypts(FILE *fp, Position *waypts) {
 /* Args: Navigator as parsed from file
  * Purpose: Assesses states and calls library functions to guide robotic boat
  * Returns 0 iff encountered no unresolvable problems */
-int pilot(Navigator nav) {
+int skipper(Navigator nav) {
 
     (void)nav;
     /* assess data and call library functions to 
