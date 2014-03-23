@@ -1,6 +1,6 @@
 /*   File: input.c
  *   By: Alex Tong, Date: Tue Mar 11
- *   Last Updated: Sat Mar 22 21:33:17
+ *   Last Updated: Sun Mar 23 09:29:07
  *
  *  file for reading in input as specified in state_rep.h
  */
@@ -42,6 +42,10 @@ unsigned read_waypts(FILE *fp, Position *waypts, unsigned size) {
 
     free(line);
     return num_waypoints;
+}
+
+void output_state(FILE *fp, Env_data env, Boat_data boat) {
+    fprintf(fp, OUTPUT_FORMAT, OUTPUT_ARGS);
 }
 
 void print_nav(Navigator nav) {

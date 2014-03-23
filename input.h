@@ -1,6 +1,6 @@
 /*   File: input.h
  *   By: Alex Tong, Date: Tue Mar 11
- *   Last Updated: Sat Mar 22 21:30:42
+ *   Last Updated: Sun Mar 23 09:27:28
  *
  *  header file for getting input data on robotic sailboat TRST project
  */
@@ -22,6 +22,9 @@ int update_state(char *data, Env_data env, Boat_data boat);
  * Returns # of waypts read
  */
 unsigned read_waypts(FILE *fp, Position *waypts, unsigned size);
+
+/* prints results of algorithm to stdout */
+void output_state(FILE *fp, Env_data env, Boat_data boat);
 
 /* various print functions for structs */
 void print_nav(Navigator nav);

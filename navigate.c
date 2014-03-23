@@ -1,6 +1,6 @@
 /*   File: high_level.c
  *   By: Joshua Pfosi, Date: Fri Mar 21
- *   Last Updated: Sat Mar 22 20:56:15
+ *   Last Updated: Sun Mar 23 09:45:43
  *
  *   Implementation of navigator for algorithm
  *   Takes in input from sensor, parsed by main.c in a loop and decides
@@ -18,6 +18,8 @@
 int skipper(Navigator nav);
 Angle ang_btwn_positions(Position pos1, Position pos2);
 Angle ang_btwn_angles(Angle theta, Angle phi);
+int adjust_heading(Navigator nav);
+int adjust_sails(Navigator nav);
 
 /* Args: Viable file for sensor input
  * Purpose: Parse input and pass data to skipper
@@ -40,11 +42,12 @@ int read_data(FILE *input) {
 
     /* reads in env and boat data */
     /* may replace getline with fgets in future */
-    while (getline(&line, &len, input) != -1) {     /* read in line fine */
-        if (update_state(line, nav->env, nav->boat) == 0) {     /* read in data fine */
+    while (getline(&line, &len, input) != -1) {
+        if (update_state(line, nav->env, nav->boat) == 0) { 
             if ((status = skipper(nav)) != 0) { /* unresolvable issue */
                 return status;
             }
+            output_state(stdout, nav->env, nav->boat);
         }
     }
 
@@ -63,7 +66,20 @@ int read_data(FILE *input) {
  * Returns 0 iff encountered no unresolvable problems */
 int skipper(Navigator nav) {
 
-    print_nav(nav);
+    Angle ang_to_waypt = ang_btwn_positions(nav->boat->pos, 
+            nav->waypts[nav->current_waypt]);
+
+    /* if heading adjustment impossible w/o irons / tack / gype */
+    if (!adjust_heading(nav)) {
+        Angle off = ang_btwn_angles(ang_to_waypt, nav->boat->heading);
+        /* if (some_low < off < sum_high) {
+                tack();
+           }
+        */
+        (void)off;
+    }
+
+    adjust_sails(nav);
     /* assess data and call library functions to 
      * mutate boat state accordingly */
 
@@ -77,6 +93,22 @@ int skipper(Navigator nav) {
      */
 
     /* return 0 if everything was resolvable */
+    return 0;
+}
+
+/* Purpose: Assess current heading and waypoint and adjust accordingly 
+ * Returns 0 if successful, nonzero otherwise
+ */
+int adjust_heading(Navigator nav) {
+    (void)nav;
+    return 0;
+}
+
+/* Purpose: Assess sail trim and wind and adjust accordingly 
+ * Returns 0 if successful, nonzero otherwise
+ */
+int adjust_sails(Navigator nav) {
+    (void)nav;
     return 0;
 }
 
