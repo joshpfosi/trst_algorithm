@@ -1,6 +1,6 @@
 /*   File: high_level.c
  *   By: Joshua Pfosi, Date: Fri Mar 21
- *   Last Updated: Sat Mar 22 11:05:56
+ *   Last Updated: Sat Mar 22 20:56:15
  *
  *   Implementation of navigator for algorithm
  *   Takes in input from sensor, parsed by main.c in a loop and decides
@@ -16,7 +16,8 @@
 #define MAX_WAYPTS 10
 
 int skipper(Navigator nav);
-unsigned read_waypts(FILE *fp, Position *waypts);
+Angle ang_btwn_positions(Position pos1, Position pos2);
+Angle ang_btwn_angles(Angle theta, Angle phi);
 
 /* Args: Viable file for sensor input
  * Purpose: Parse input and pass data to skipper
@@ -31,7 +32,7 @@ int read_data(FILE *input) {
     nav->boat = malloc(sizeof(*(nav->boat)));
     nav->waypts = malloc(MAX_WAYPTS * sizeof(*(nav->waypts)));
     nav->current_waypt = 0;
-    nav->num_waypts = read_waypts(input, nav->waypts);
+    nav->num_waypts = read_waypts(input, nav->waypts, MAX_WAYPTS);
 
     int status = 0;
     char *line = NULL;
@@ -57,31 +58,12 @@ int read_data(FILE *input) {
     return 0;
 }
 
-/* Args: File ptr and initialize array of size MAX_WAYPTS
- * Purpose: Populates array w/ waypts read from file
- * Returns # of waypts read
- */
-unsigned read_waypts(FILE *fp, Position *waypts) {
-    char *line = malloc(16);
-    unsigned num_waypoints = (fgetc(fp) - 48), i;
-    assert(num_waypoints >= 0 && num_waypoints <= MAX_WAYPTS);
-
-    /* read in each waypt */
-    for (i = 0; i < num_waypoints; ++i) {
-        fscanf(fp, "%f,%f;", &(waypts[i].lat), &(waypts[i].lon));
-    }
-    fgetc(fp); /* discard the newline */
-
-    free(line);
-    return num_waypoints;
-}
-
 /* Args: Navigator as parsed from file
  * Purpose: Assesses states and calls library functions to guide robotic boat
  * Returns 0 iff encountered no unresolvable problems */
 int skipper(Navigator nav) {
 
-    (void)nav;
+    print_nav(nav);
     /* assess data and call library functions to 
      * mutate boat state accordingly */
 
@@ -96,4 +78,21 @@ int skipper(Navigator nav) {
 
     /* return 0 if everything was resolvable */
     return 0;
+}
+
+/* Args: two Positions
+ * Purpose: Calculate the angle defined by pos1 and pos2, using pos1 as origin
+ * Returns the angle in standard position
+ */
+Angle ang_btwn_positions(Position pos1, Position pos2) {
+    (void)pos1; (void)pos2;
+    return 0;
+}
+
+/* Args: two Vectors
+ * Purpose: Calculate the angle between to vectors
+ * Returns the angle
+ */
+Angle ang_btwn_angles(Angle theta, Angle phi) {
+    return theta - phi;
 }

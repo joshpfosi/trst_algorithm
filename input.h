@@ -1,6 +1,6 @@
 /*   File: input.h
  *   By: Alex Tong, Date: Tue Mar 11
- *   Last Updated: Sat Mar 22 10:39:06
+ *   Last Updated: Sat Mar 22 21:30:42
  *
  *  header file for getting input data on robotic sailboat TRST project
  */
@@ -16,6 +16,18 @@
  * Returns 0 if successful, 1 otherwise
  */
 int update_state(char *data, Env_data env, Boat_data boat);
+
+/* Args: File ptr and initialized array of size MAX_WAYPTS
+ * Purpose: Populates array w/ waypts read from file
+ * Returns # of waypts read
+ */
+unsigned read_waypts(FILE *fp, Position *waypts, unsigned size);
+
+/* various print functions for structs */
+void print_nav(Navigator nav);
+void print_env(Env_data env);
+void print_boat(Boat_data boat);
+void print_position(Position pos);
 
 /* Returns file pointer to filename and aborts otherwise w/ msg */
 FILE *open_or_abort(char *filename, char *mode);

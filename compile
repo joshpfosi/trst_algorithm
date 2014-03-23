@@ -20,7 +20,7 @@ esac
 # compile each argument to a .o file
 for cfile 
 do
-  gcc $FLAGS $CFLAGS -c $cfile
+  gcc -DDATA_GEN $FLAGS $CFLAGS -c $cfile
 done
 
 case $link in
