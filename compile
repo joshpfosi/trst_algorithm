@@ -26,7 +26,12 @@ do
 done
 
 case $link in
-  all|trst) gcc $FLAGS -o trst *.o
+  all|trst) gcc $FLAGS -o trst main.o input.o navigate.o
+              linked=yes ;;
+esac
+
+case $link in
+  all|gen_data) gcc $FLAGS -o gen_data env_data_gen.o
               linked=yes ;;
 esac
 
