@@ -1,12 +1,13 @@
 /*   File: input.c
  *   By: Alex Tong, Date: Tue Mar 11
- *   Last Updated: Sun Mar 23 09:29:07
+ *   Last Updated: Mon Mar 24 23:52:36
  *
  *  file for reading in input as specified in state_rep.h
  */
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 #include <assert.h>
 #include "input.h"
 #include "state_rep.h"
@@ -14,9 +15,6 @@
 /* reads a data string into boat and enviroment data */
 int update_state(char *data, Env_data env, Boat_data boat)
 {
-    #ifdef DATA_GEN
-        (void)boat;
-    #endif
     /* read env */
     int re = sscanf(data, DATA_FORMAT_STRING, DATA_ARGS);
 
@@ -26,6 +24,30 @@ int update_state(char *data, Env_data env, Boat_data boat)
                 "members\n", re, NUM_MEMS);
         return 1;
     }
+    #ifdef DATA_GEN
+        float boat_angle = (M_PI * boat->heading) / 180,
+              boat_speed = 10, 
+              wind_angle = (M_PI * env->wind_dir) / 180, 
+              wind_speed = env->wind_speed;
+
+        /* resolve boat vectors */
+        float boat_x = boat_speed * cos(boat_angle), 
+              boat_y = boat_speed * sin(boat_angle);
+
+        /* resolve wind vectors */
+        float wind_x = wind_speed * cos(wind_angle), 
+              wind_y = wind_speed * sin(wind_angle);
+
+        /* calculate vector product */
+        float app_wind_x = boat_x + wind_x, app_wind_y = boat_y + wind_y;
+        
+        /* determine vector components */
+        float temp = (180 * atan(app_wind_y / app_wind_x)) / M_PI;
+
+        env->app_wind_dir = (temp < 0) ? temp + 360 : temp;
+        env->app_wind_speed = sqrt(app_wind_x * app_wind_x + app_wind_y * app_wind_y);
+    #endif
+
     return 0;
 }
 
@@ -36,7 +58,7 @@ unsigned read_waypts(FILE *fp, Position *waypts, unsigned size) {
 
     /* read in each waypt */
     for (i = 0; i < num_waypoints; ++i) {
-        fscanf(fp, "%f,%f;", &(waypts[i].lat), &(waypts[i].lon));
+        assert(fscanf(fp, "%f,%f;", &(waypts[i].lat), &(waypts[i].lon)) == 2);
     }
     fgetc(fp); /* discard the newline */
 

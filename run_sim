@@ -1,0 +1,13 @@
+#!/bin/sh
+
+# Script to run test script
+# Any waypoints should be put into waypoints.data in the form:
+# 
+#     n
+#     x1,y1;x2,y2;...xn,yn;
+# 
+# where n is the # of waypoints and xi is a latitude coord, and yi is longitude
+#
+# Args: same optional args the ./gen_data takes for same purpose
+
+./gen_data $1 $2 $3 $4 | cat waypoints.data - | ./trst
