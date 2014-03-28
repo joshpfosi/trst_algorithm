@@ -1,6 +1,6 @@
 /*   File: high_level.c
  *   By: Joshua Pfosi, Date: Fri Mar 21
- *   Last Updated: Sun Mar 23 09:45:43
+ *   Last Updated: Tue Mar 25 12:02:35
  *
  *   Implementation of navigator for algorithm
  *   Takes in input from sensor, parsed by main.c in a loop and decides
@@ -18,7 +18,7 @@
 int skipper(Navigator nav);
 Angle ang_btwn_positions(Position pos1, Position pos2);
 Angle ang_btwn_angles(Angle theta, Angle phi);
-int adjust_heading(Navigator nav);
+int adjust_heading(Navigator nav, Angle off);
 int adjust_sails(Navigator nav);
 
 /* Args: Viable file for sensor input
@@ -70,7 +70,7 @@ int skipper(Navigator nav) {
             nav->waypts[nav->current_waypt]);
 
     /* if heading adjustment impossible w/o irons / tack / gype */
-    if (!adjust_heading(nav)) {
+    if (!adjust_heading(nav, ang_to_waypt)) {
         Angle off = ang_btwn_angles(ang_to_waypt, nav->boat->heading);
         /* if (some_low < off < sum_high) {
                 tack();
@@ -99,8 +99,11 @@ int skipper(Navigator nav) {
 /* Purpose: Assess current heading and waypoint and adjust accordingly 
  * Returns 0 if successful, nonzero otherwise
  */
-int adjust_heading(Navigator nav) {
-    (void)nav;
+int adjust_heading(Navigator nav, Angle off) {
+    fprintf(stderr, "off == %f\n", off);
+    fprintf(stderr, "before heading == %f\n", nav->boat->heading);
+    nav->boat->heading += off;
+    fprintf(stderr, "after heading == %f\n", nav->boat->heading);
     return 0;
 }
 
