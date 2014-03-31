@@ -1,6 +1,6 @@
 /*   File: env_data_gen.c
  *   By: Joshua Pfosi, Date: Mon Mar 24
- *   Last Updated: Mon Mar 24 23:25:18
+ *   Last Updated: Sun Mar 30 21:53:29
  *
  *   Data generation engine for navigation simulations
  *   Limitation: Without boat heading, cannot calculate apparent wind vector
@@ -29,6 +29,8 @@
 #define SHIFT_DEFAULT 0
 #define SHIFT_SEVERITY_DIR 10
 #define SHIFT_SEVERITY_SPEED 1
+#define STEADY_DUR 10
+#define SHIFT_DUR 4
 
 void output_data(int, float, float, int);
 
@@ -64,42 +66,53 @@ void output_data(int num_lines, float wind_dir, float wind_speed, int shift) {
     int rand_num = 0, s = 0;
     float wind_veer = 0.0, wind_shift = 0.0;
     srand(time(NULL));
+    int shifting = 0, time = 0;
 
-    for (; num_lines > 0; --num_lines) {
+    for (; num_lines > 0; --num_lines, ++time) {
+        if (time == STEADY_DUR) {
+            shifting = 1;
+            time = 0;
+        }
         float temp_dir = wind_dir, temp_speed = wind_speed;
-        /* model environmental randomness */
-        rand_num = rand();
-        s = (shift != 0) ? rand_num % shift : 0;
-        s = shift - s;
+        if (shifting) {
+            if (time == SHIFT_DUR) {
+                shifting = 0;
+                time = 0;
+            }
+            /* model environmental randomness */
+            rand_num = rand();
+            s = (shift != 0) ? rand_num % shift : 0;
+            s = shift - s;
 
-        switch (rand_num % 9) {
-            /* 0 / 0 */
-            case 0: break;
-            /* 0 / + */
-            case 1: wind_shift = s; break;
-            /* + / 0 */
-            case 2: wind_veer = s; break;
-            /* 0 / - */
-            case 3: wind_shift = -s; break;
-            /* - / 0 */
-            case 4: wind_veer = -s; break;
-            /* + / - */
-            case 5: wind_veer = s; wind_shift = -s; break;
-            /* - / + */
-            case 6: wind_veer = -s; wind_shift = s; break;
-            /* + / + */
-            case 7: wind_veer = s; wind_shift = s; break;
-            /* - / - */
-            case 8: wind_veer = -s; wind_shift = -s; break;
+            switch (rand_num % 9) {
+                /* 0 / 0 */
+                case 0: break;
+                        /* 0 / + */
+                case 1: wind_shift = s; break;
+                        /* + / 0 */
+                case 2: wind_veer = s; break;
+                        /* 0 / - */
+                case 3: wind_shift = -s; break;
+                        /* - / 0 */
+                case 4: wind_veer = -s; break;
+                        /* + / - */
+                case 5: wind_veer = s; wind_shift = -s; break;
+                        /* - / + */
+                case 6: wind_veer = -s; wind_shift = s; break;
+                        /* + / + */
+                case 7: wind_veer = s; wind_shift = s; break;
+                        /* - / - */
+                case 8: wind_veer = -s; wind_shift = -s; break;
+            }
+
+            /* calculate shifts */
+            temp_dir += wind_veer * SHIFT_SEVERITY_DIR;
+            temp_speed += wind_shift * SHIFT_SEVERITY_SPEED;
+            if (wind_speed < 0) {
+                wind_speed = 0;
+            }
+
         }
-
-        /* calculate shifts */
-        temp_dir += wind_veer * SHIFT_SEVERITY_DIR;
-        temp_speed += wind_shift * SHIFT_SEVERITY_SPEED;
-        if (wind_speed < 0) {
-            wind_speed = 0;
-        }
-
         fprintf(stdout, "%f;%f;%f;%f\n", temp_dir, temp_speed, 0.0, 0.0);
     }
 }

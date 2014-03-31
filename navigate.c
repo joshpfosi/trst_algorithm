@@ -1,6 +1,6 @@
 /*   File: high_level.c
  *   By: Joshua Pfosi, Date: Fri Mar 21
- *   Last Updated: Tue Mar 25 12:02:35
+ *   Last Updated: Sun Mar 30 16:36:50
  *
  *   Implementation of navigator for algorithm
  *   Takes in input from sensor, parsed by main.c in a loop and decides
@@ -10,10 +10,13 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
+#include <math.h>
 #include "input.h"
 #include "state_rep.h"
 
 #define MAX_WAYPTS 10
+#define GROOVE 5 /* tolerance to be off exact course == 5 degrees */
+#define TACK_THRESHOLD 45 /* tolerance to not tack */
 
 int skipper(Navigator nav);
 Angle ang_btwn_positions(Position pos1, Position pos2);
@@ -70,27 +73,8 @@ int skipper(Navigator nav) {
             nav->waypts[nav->current_waypt]);
 
     /* if heading adjustment impossible w/o irons / tack / gype */
-    if (!adjust_heading(nav, ang_to_waypt)) {
-        Angle off = ang_btwn_angles(ang_to_waypt, nav->boat->heading);
-        /* if (some_low < off < sum_high) {
-                tack();
-           }
-        */
-        (void)off;
-    }
-
-    adjust_sails(nav);
-    /* assess data and call library functions to 
-     * mutate boat state accordingly */
-
-
-    /* -- example pseudo-code */
-
-    /* switch on lat/lon
-     *      case <reached waypoint>:
-     *               nav->current_waypoint++;
-     *               break;
-     */
+    if (adjust_heading(nav, ang_to_waypt) || adjust_sails(nav))
+        return 1; /* one of the calls couldn't recover */
 
     /* return 0 if everything was resolvable */
     return 0;
@@ -99,11 +83,15 @@ int skipper(Navigator nav) {
 /* Purpose: Assess current heading and waypoint and adjust accordingly 
  * Returns 0 if successful, nonzero otherwise
  */
-int adjust_heading(Navigator nav, Angle off) {
-    fprintf(stderr, "off == %f\n", off);
-    fprintf(stderr, "before heading == %f\n", nav->boat->heading);
-    nav->boat->heading += off;
-    fprintf(stderr, "after heading == %f\n", nav->boat->heading);
+int adjust_heading(Navigator nav, Angle ang_to_waypt) {
+    Angle off = ang_btwn_angles(ang_to_waypt, nav->boat->heading);
+
+    if (ang_to_waypt >= TACK_THRESHOLD) {
+        /* call the tack function */
+    }
+    else if (abs(off) >= GROOVE) {
+        /* adjust heading */
+    }
     return 0;
 }
 
