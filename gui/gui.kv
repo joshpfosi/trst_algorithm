@@ -49,14 +49,12 @@
 # Contains specific "decision" data that the algorithm made
 # e.g. Rudder and sail position as well as what it's current
 # micro-goal (waypoint) is
-<AlgorData>:
-  Button:
-    text: "Sail Position"
-  Button:
-    text: "Velocity"
+#<AlgorData>:
 
 # Shows a visual (and eventually text) representation of the rudder angle
 <RudderPosition>:
+  Label:
+    text: "Rudder Position: "
   canvas:
     Color:
       rgb: 0, 1, 0
@@ -66,3 +64,22 @@
     Color:
       rgb: 1, 0, 0
         
+<SailPosition>:
+  canvas:
+    Color:
+      rgb: 0, 1, 0
+    Ellipse:
+      size: (200, 200)
+      pos: self.pos
+    Color:
+      rgb: 1, 0, 0
+
+<Velocity>:
+  canvas:
+    Color:
+      rgb: 0, 1, 0
+    Ellipse:
+      size: (200, 200)
+      pos: self.pos
+    Color:
+      rgb: 1, 0, 0

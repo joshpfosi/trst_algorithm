@@ -17,8 +17,15 @@ def write_test_data(maxLat = 40.0868, minLat = 40.001, stepLat = 0.001, maxLon =
     latlon = zip(drange(minLat, maxLat, stepLat), drange(minLon, maxLon, stepLon))
     length = len(latlon)
     for i in range(length):
-        data.write("{1};{0};{2};{3};{4}\n".format(latlon[i][0], latlon[i][1], (4*i)%360, (5*i)%360, (6*i)%360))
-        data.write("{1};{0};{2};{3};{4}\n".format(latlon[length - i - 1][0], latlon[length - i - 1][1], (4*(length - i - 1))%360, (5 * i) % 360, (6 * i)%360))
+        # write algor data
+        data.write("{0};{1};{2};{3};{4};{5};{6};{7};{8};{9}\n".format((4*i)%360,
+          10, (5*i)%360, 8, i%5, (4*i + 180)%360, 
+          latlon[i][0], latlon[i][1], 45, 7))
+
+        # write human data
+        data.write("{0};{1};{2};{3};{4};{5};{6};{7};{8};{9}\n".format((4*i)%360,
+          10, (5*i)%360, 8, -i%5, (4*i + 180)%360, latlon[length - i - 1][0], 
+          latlon[length - i - 1][1], 225, 7))
 
     data.close()
 
