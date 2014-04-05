@@ -23,6 +23,7 @@ Angle ang_btwn_positions(Position pos1, Position pos2);
 Angle ang_btwn_angles(Angle theta, Angle phi);
 int adjust_heading(Navigator nav, Angle off);
 int adjust_sails(Navigator nav);
+int adjust_rudder(int rudder_angle);
 
 /* Args: Viable file for sensor input
  * Purpose: Parse input and pass data to skipper
@@ -85,12 +86,17 @@ int skipper(Navigator nav) {
  */
 int adjust_heading(Navigator nav, Angle ang_to_waypt) {
     Angle off = ang_btwn_angles(ang_to_waypt, nav->boat->heading);
-
+    float PROPORTIONAL_CONST = 0.2; // low level for minor adjustments
     if (ang_to_waypt >= TACK_THRESHOLD) {
         /* call the tack function */
+        PROPORTIONAL_CONST = 0.5; // high level for tacking
+        int rudder_angle = PROPORTIONAL_CONST * off;
+        adjust_rudder(rudder_angle);
     }
     else if (abs(off) >= GROOVE) {
         /* adjust heading */
+        int rudder_angle = PROPORTIONAL_CONST * off;
+        adjust_rudder(rudder_angle);
     }
     return 0;
 }
@@ -100,6 +106,14 @@ int adjust_heading(Navigator nav, Angle ang_to_waypt) {
  */
 int adjust_sails(Navigator nav) {
     (void)nav;
+    return 0;
+}
+
+/* Purpose: Call function to adjust rudder position.
+ * Returns 0 if successful, nonzero otherwise
+ */
+int adjust_rudder(int rudder_angle) {
+    position(rudder_angle); //call function written by builders to move the rudder
     return 0;
 }
 
