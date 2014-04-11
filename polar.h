@@ -1,7 +1,7 @@
 
-#include state_rep.h
+#include "state_rep.h"
 
 /* returns an approximate boat speed from the given data
  * currently only takes into account app_wind_dir, and boat
  * heading */
-export float ideal_speed(Env_data env, Boat_data boat);
+float ideal_speed(Env_data env, Boat_data boat);
