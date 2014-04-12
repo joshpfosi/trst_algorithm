@@ -56,6 +56,7 @@ typedef struct Env_data {
 typedef struct Boat_data {
     Angle rud_pos, sail_pos, heading;
     Position pos;
+    float boat_speed;
 } *Boat_data;
 
 /* bundles complete state of navigator */
