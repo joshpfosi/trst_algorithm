@@ -1,6 +1,6 @@
 /*   File: input.c
  *   By: Alex Tong, Date: Tue Mar 11
- *   Last Updated: Mon Mar 24 23:52:36
+ *   Last Updated: Mon Apr 14 19:01:22
  *
  *  file for reading in input as specified in state_rep.h
  */
@@ -9,12 +9,11 @@
 #include <stdlib.h>
 #include <math.h>
 #include <assert.h>
-#include "input.h"
 #include "state_rep.h"
+#include "input.h"
+#include "polar.h"
 
 const float EARTH_R = 6371;           /* radius of earth in km */
-const float M_PI    = 3.1414526535897;/* TODO had to put my own pi value in */
-                                      /* for some reason, won't compile otherwise*/
 
 const unsigned RATE = 1/96;           /* TODO can't find rate mentioned by josh, */
                                       /* I think it was 96hz, but should confirm */
