@@ -1,10 +1,15 @@
 /* put your header here josh */
 
 #include "polar.h"
+#include <stdlib.h>
 
-float angle_between_angles(float f1, float f2)
+float angle_between_wind(float f1, float f2)
 {
-        return f1 - f2;
+        float f = abs(f1 - f2);
+        if (f > 180) {
+            return 360 - f;
+        }
+        return f;
 }
 
 /* J24 polar data from some random guy on the internet */
@@ -48,9 +53,7 @@ float ideal_speed(Env_data env, Boat_data boat)
         { 2.71,   3.69,   4.62,   5.33,   5.86,   6.22,   6.89 },
         { 2.57,   3.57,   4.48,   5.20,   5.78,   6.17,   6.82 },
         { 2.50,   3.50,   4.40,   5.10,   5.70,   6.14,   6.79 } };
-    float angle_to_wind = angle_between_angles(env->app_wind_dir, boat->heading);
-    if (angle_to_wind > 180)
-            angle_to_wind = 360 - angle_to_wind;
+    float angle_to_wind = angle_between_wind(env->app_wind_dir, boat->heading);
     if (angle_to_wind < 30)
         return 0;
     int wa = angle_to_wind;
