@@ -1,6 +1,6 @@
 /*   File: input.c
  *   By: Alex Tong, Date: Tue Mar 11
- *   Last Updated: Mon Apr 14 19:01:22
+ *   Last Updated: Mon Mar 24 23:52:36
  *
  *  file for reading in input as specified in state_rep.h
  */
@@ -9,24 +9,15 @@
 #include <stdlib.h>
 #include <math.h>
 #include <assert.h>
-#include "state_rep.h"
 #include "input.h"
-#include "polar.h"
-
-const float EARTH_R = 6371;           /* radius of earth in km */
-
-const unsigned RATE = 1/96;           /* TODO can't find rate mentioned by josh, */
-                                      /* I think it was 96hz, but should confirm */
-
-static inline float degrees_to_radians(float deg); /*TODO helper functions? */ 
-static inline float radians_to_degrees(float rad); /*TODO helper functions? */ 
-static void update_pos(Boat_data boat, float boat_speed);
+#include "state_rep.h"
 
 /* reads a data string into boat and enviroment data */
 int update_state(char *data, Env_data env, Boat_data boat)
 {
     /* read env */
     int re = sscanf(data, DATA_FORMAT_STRING, DATA_ARGS);
+
     /* Skip badly formed lines */
     if (re != NUM_MEMS) {
         fprintf(stderr, "Error reading data, read in: %d / %d necessary "
@@ -34,23 +25,18 @@ int update_state(char *data, Env_data env, Boat_data boat)
         return 1;
     }
     #ifdef DATA_GEN
-        float boat_angle = degrees_to_radians(boat->heading),
-              boat_speed = ideal_speed(env, boat), 
-              wind_angle = degrees_to_radians(env->wind_dir),
+        float boat_angle = (M_PI * boat->heading) / 180,
+              boat_speed = 10, 
+              wind_angle = (M_PI * env->wind_dir) / 180, 
               wind_speed = env->wind_speed;
-        
-        /* boat->boat_speed = boat_speed; */
-
-        update_pos(boat, boat_speed);
 
         /* resolve boat vectors */
-        float boat_x = boat->boat_speed * cos(boat_angle),
-              boat_y = boat->boat_speed * sin(boat_angle);
+        float boat_x = boat_speed * cos(boat_angle), 
+              boat_y = boat_speed * sin(boat_angle);
 
         /* resolve wind vectors */
         float wind_x = wind_speed * cos(wind_angle), 
               wind_y = wind_speed * sin(wind_angle);
-
 
         /* calculate vector product */
         float app_wind_x = boat_x + wind_x, app_wind_y = boat_y + wind_y;
@@ -65,43 +51,10 @@ int update_state(char *data, Env_data env, Boat_data boat)
     return 0;
 }
 
-static void update_pos(Boat_data boat, float boat_speed)
-{
-        /* convert velocity vectors to angular velocity */
-        float boat_x = boat_speed * cos(degrees_to_radians(boat->heading)),
-              boat_y = boat_speed * sin(degrees_to_radians(boat->heading));
-
-        /* convert tangential velocity vectors to angular velocity */
-        float ang_vel_y = boat_y / EARTH_R;
-        float ang_vel_x = boat_x / EARTH_R;
-
-        /* convert position to radians */
-        float long_rad = degrees_to_radians(boat->pos.lon);
-        float lat_rad  = degrees_to_radians(boat->pos.lat);
-
-        /* add angular velocity times time to current position
-         * and update boat's position and convert back */
-       /* TODO what is unit of time of update?  one second ?*/ 
-        boat->pos.lon = radians_to_degrees(long_rad + ang_vel_y * RATE);
-        boat->pos.lat = radians_to_degrees(lat_rad  + ang_vel_x * RATE);
-}
-
-static inline float degrees_to_radians(float deg) /*TODO helper functions? */ 
-{
-        return (deg * M_PI) / 180;
-}
-
-static inline float radians_to_degrees(float rads)
-{
-        return (rads / M_PI) * 180;
-}
-
 unsigned read_waypts(FILE *fp, Position *waypts, unsigned size) {
     char *line = malloc(16);
     unsigned num_waypoints = (fgetc(fp) - 48), i;
-    /* TODO compiler issues here */
-/*   assert(num_waypoints >= 0 && num_waypoints <= size);*/
-     assert(num_waypoints <= size);
+    assert(num_waypoints >= 0 && num_waypoints <= size);
 
     /* read in each waypt */
     for (i = 0; i < num_waypoints; ++i) {
