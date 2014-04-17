@@ -89,9 +89,6 @@ int skipper(Navigator nav) {
  * Returns 0 if successful, nonzero otherwise
  */
 int adjust_heading(Navigator nav, Angle error) {
-
-    Angle off = ang_btwn_angles(ang_to_waypt, nav->boat->heading);
-
     float PROPORTIONAL_CONST = 0.2; // low level for minor adjustments
     float INTEGRAL_CONST = 0.0;
     Rudder_PID_data pid = nav->boat->PID;
@@ -127,6 +124,7 @@ int adjust_sails(Navigator nav) {
  * Returns 0 if successful, nonzero otherwise
  */
 int adjust_rudder(int rudder_angle) {
+    (void) rudder_angle;
     //position(rudder_angle); //call function written by builders to move the rudder
     return 0;
 }
@@ -135,9 +133,9 @@ int adjust_rudder(int rudder_angle) {
  */
 void update_pid(Rudder_PID_data pid, Angle error) {
     if(pid->pos > ERROR_HISTORY_CAP){
-        integral -= pid->prev_errors[pid->pos % ERROR_HISTORY_CAP];    
+        pid->integral -= pid->prev_errors[pid->pos % ERROR_HISTORY_CAP];    
     }
-    integral += error;
+    pid->integral += error;
     pid->prev_errors[pid->pos % ERROR_HISTORY_CAP] = error;
 }
 

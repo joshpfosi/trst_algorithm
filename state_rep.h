@@ -52,10 +52,10 @@ typedef struct Env_data {
     float wind_dir, wind_speed, app_wind_dir, app_wind_speed;
 } *Env_data;
 
-const int ERROR_HISTORY_CAP = 1000;
+const static int ERROR_HISTORY_CAP = 1000;
 /* stores pid integral control data */
 typedef struct Rudder_PID_data {
-  float   prev_errors[ERROR_HISTORY_CAP];
+  float   prev_errors[1000];
   float   integral;
   int     pos ; /* position of next array update */
 } *Rudder_PID_data;
