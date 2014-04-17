@@ -16,7 +16,7 @@ const float EARTH_R = 6371;           /* radius of earth in km */
 const float M_PI    = 3.1414526535897;/* TODO had to put my own pi value in */
                                       /* for some reason, won't compile otherwise*/
 
-const unsigned RATE = 1/96;           /* TODO can't find rate mentioned by josh, */
+const unsigned RATE = 96;           /* TODO can't find rate mentioned by josh, */
                                       /* I think it was 96hz, but should confirm */
 
 static inline float degrees_to_radians(float deg); /*TODO helper functions? */ 
@@ -68,8 +68,8 @@ int update_state(char *data, Env_data env, Boat_data boat)
 static void update_pos(Boat_data boat, float boat_speed)
 {
         /* convert velocity vectors to angular velocity */
-        float boat_x = boat_speed * cos(degrees_to_radians(boat->heading)),
-              boat_y = boat_speed * sin(degrees_to_radians(boat->heading));
+        float boat_x = boat_speed * cosf(degrees_to_radians(boat->heading)),
+              boat_y = boat_speed * sinf(degrees_to_radians(boat->heading));
 
         /* convert tangential velocity vectors to angular velocity */
         float ang_vel_y = boat_y / EARTH_R;
@@ -82,8 +82,8 @@ static void update_pos(Boat_data boat, float boat_speed)
         /* add angular velocity times time to current position
          * and update boat's position and convert back */
        /* TODO what is unit of time of update?  one second ?*/ 
-        boat->pos.lon = radians_to_degrees(long_rad + ang_vel_y * RATE);
-        boat->pos.lat = radians_to_degrees(lat_rad  + ang_vel_x * RATE);
+        boat->pos.lon = radians_to_degrees(long_rad + ang_vel_y / RATE);
+        boat->pos.lat = radians_to_degrees(lat_rad  + ang_vel_x / RATE);
 }
 
 static inline float degrees_to_radians(float deg) /*TODO helper functions? */ 
