@@ -12,6 +12,17 @@
 #include "input.h"
 #include "state_rep.h"
 
+const float EARTH_R = 6371;           /* radius of earth in km */
+const float M_PI    = 3.1414526535897;/* TODO had to put my own pi value in */
+                                      /* for some reason, won't compile otherwise*/
+
+const unsigned RATE = 1/96;           /* TODO can't find rate mentioned by josh, */
+                                      /* I think it was 96hz, but should confirm */
+
+static inline float degrees_to_radians(float deg); /*TODO helper functions? */ 
+static inline float radians_to_degrees(float rad); /*TODO helper functions? */ 
+static void update_pos(Boat_data boat, float boat_speed);
+
 /* reads a data string into boat and enviroment data */
 int update_state(char *data, Env_data env, Boat_data boat)
 {
@@ -26,9 +37,12 @@ int update_state(char *data, Env_data env, Boat_data boat)
     }
     #ifdef DATA_GEN
         float boat_angle = (M_PI * boat->heading) / 180,
-              boat_speed = 10, 
+/*              boat_speed = 10, */
+              boat_speed = ideal_speed(env, boat), 
               wind_angle = (M_PI * env->wind_dir) / 180, 
               wind_speed = env->wind_speed;
+
+        update_pos(boat, boat_speed);
 
         /* resolve boat vectors */
         float boat_x = boat_speed * cos(boat_angle), 
@@ -51,6 +65,36 @@ int update_state(char *data, Env_data env, Boat_data boat)
     return 0;
 }
 
+static void update_pos(Boat_data boat, float boat_speed)
+{
+        /* convert velocity vectors to angular velocity */
+        float boat_x = boat_speed * cos(degrees_to_radians(boat->heading)),
+              boat_y = boat_speed * sin(degrees_to_radians(boat->heading));
+
+        /* convert tangential velocity vectors to angular velocity */
+        float ang_vel_y = boat_y / EARTH_R;
+        float ang_vel_x = boat_x / EARTH_R;
+
+        /* convert position to radians */
+        float long_rad = degrees_to_radians(boat->pos.lon);
+        float lat_rad  = degrees_to_radians(boat->pos.lat);
+
+        /* add angular velocity times time to current position
+         * and update boat's position and convert back */
+       /* TODO what is unit of time of update?  one second ?*/ 
+        boat->pos.lon = radians_to_degrees(long_rad + ang_vel_y * RATE);
+        boat->pos.lat = radians_to_degrees(lat_rad  + ang_vel_x * RATE);
+}
+
+static inline float degrees_to_radians(float deg) /*TODO helper functions? */ 
+{
+        return (deg * M_PI) / 180;
+}
+
+static inline float radians_to_degrees(float rads)
+{
+        return (rads / M_PI) * 180;
+}
 unsigned read_waypts(FILE *fp, Position *waypts, unsigned size) {
     char *line = malloc(16);
     unsigned num_waypoints = (fgetc(fp) - 48), i;
