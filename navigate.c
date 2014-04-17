@@ -24,6 +24,7 @@ Angle ang_btwn_angles(Angle theta, Angle phi);
 int adjust_heading(Navigator nav, Angle off);
 int adjust_sails(Navigator nav);
 int adjust_rudder(int rudder_angle);
+void update_pid(Rudder_PID_data pid, Angle error);
 
 /* Args: Viable file for sensor input
  * Purpose: Parse input and pass data to skipper
@@ -36,6 +37,9 @@ int read_data(FILE *input) {
     nav->env = malloc(sizeof(*(nav->env)));
     /* note: may need to initialize the Position inner struct */
     nav->boat = malloc(sizeof(*(nav->boat)));
+    nav->boat->PID = malloc(sizeof(*(nav->boat->PID)));
+    nav->boat->PID->integral = 0;
+    nav->boat->PID->pos = 0;
     nav->waypts = malloc(MAX_WAYPTS * sizeof(*(nav->waypts)));
     nav->current_waypt = 0;
     nav->num_waypts = read_waypts(input, nav->waypts, MAX_WAYPTS);
@@ -84,20 +88,30 @@ int skipper(Navigator nav) {
 /* Purpose: Assess current heading and waypoint and adjust accordingly 
  * Returns 0 if successful, nonzero otherwise
  */
-int adjust_heading(Navigator nav, Angle ang_to_waypt) {
+int adjust_heading(Navigator nav, Angle error) {
+
     Angle off = ang_btwn_angles(ang_to_waypt, nav->boat->heading);
+
     float PROPORTIONAL_CONST = 0.2; // low level for minor adjustments
-    if (ang_to_waypt >= TACK_THRESHOLD) {
-        /* call the tack function */
-        PROPORTIONAL_CONST = 0.5; // high level for tacking
-        int rudder_angle = PROPORTIONAL_CONST * off;
+    float INTEGRAL_CONST = 0.0;
+    Rudder_PID_data pid = nav->boat->PID;
+    
+    /* call the tack function */
+    /*if (error >= TACK_THRESHOLD) {
+        
+        int rudder_angle = PROPORTIONAL_CONST * error + INTEGRAL_CONST * pid->integral;
         adjust_rudder(rudder_angle);
     }
-    else if (abs(off) >= GROOVE) {
+    else */
+    /* commented out because they were the same. if we find we need a different 
+     * preportional constant later for tacking we can implement it */
+
+    if (abs(error) >= GROOVE) {
         /* adjust heading */
-        int rudder_angle = PROPORTIONAL_CONST * off;
+        int rudder_angle = PROPORTIONAL_CONST * error + INTEGRAL_CONST * pid->integral;
         adjust_rudder(rudder_angle);
     }
+    update_pid(pid, error);
     return 0;
 }
 
@@ -113,9 +127,20 @@ int adjust_sails(Navigator nav) {
  * Returns 0 if successful, nonzero otherwise
  */
 int adjust_rudder(int rudder_angle) {
-    position(rudder_angle); //call function written by builders to move the rudder
+    //position(rudder_angle); //call function written by builders to move the rudder
     return 0;
 }
+
+/* Purpose: updates the integral part of our pid control
+ */
+void update_pid(Rudder_PID_data pid, Angle error) {
+    if(pid->pos > ERROR_HISTORY_CAP){
+        integral -= pid->prev_errors[pid->pos % ERROR_HISTORY_CAP];    
+    }
+    integral += error;
+    pid->prev_errors[pid->pos % ERROR_HISTORY_CAP] = error;
+}
+
 
 /* Args: two Positions
  * Purpose: Calculate the angle defined by pos1 and pos2, using pos1 as origin
