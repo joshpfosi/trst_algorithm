@@ -64,11 +64,8 @@ typedef struct Rudder_PID_data {
 typedef struct Boat_data {
     Angle rud_pos, sail_pos, heading;
     Position pos;
-<<<<<<< HEAD
     Rudder_PID_data PID;
-=======
     float boat_speed;
->>>>>>> 4ad4090dbc94b2d19b3c2184fc9ca879549042fd
 } *Boat_data;
 
 /* bundles complete state of navigator */
