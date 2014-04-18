@@ -14,16 +14,7 @@
 #include "polar.h"
 
 const float EARTH_R = 6371;           /* radius of earth in km */
-
-const unsigned RATE = 1/96;           /* TODO can't find rate mentioned by josh, */
-                                      /* I think it was 96hz, but should confirm */
-
-static inline float degrees_to_radians(float deg); /*TODO helper functions? */ 
-static inline float radians_to_degrees(float rad); /*TODO helper functions? */ 
-static void update_pos(Boat_data boat, float boat_speed);
-
-const float EARTH_R = 6371;           /* radius of earth in km */
-const float M_PI    = 3.1414526535897;/* TODO had to put my own pi value in */
+const float PI    = 3.1414526535897;/* TODO had to put my own pi value in */
                                       /* for some reason, won't compile otherwise*/
 
 const unsigned RATE = 96;           /* TODO can't find rate mentioned by josh, */
@@ -45,38 +36,32 @@ int update_state(char *data, Env_data env, Boat_data boat)
         return 1;
     }
     #ifdef DATA_GEN
-<<<<<<< HEAD
-        float boat_angle = (M_PI * boat->heading) / 180,
+        float boat_angle = (PI * boat->heading) / 180,
 /*              boat_speed = 10, */
               boat_speed = ideal_speed(env, boat), 
-              wind_angle = (M_PI * env->wind_dir) / 180, 
-=======
-        float boat_angle = degrees_to_radians(boat->heading),
-              boat_speed = ideal_speed(env, boat), 
+              wind_angle = (PI * env->wind_dir) / 180, 
               wind_angle = degrees_to_radians(env->wind_dir),
->>>>>>> parent of 0569818... Revert "Merge branch 'master' of https://github.com/joshpfosi/trst_algorithm"
               wind_speed = env->wind_speed;
         
         /* boat->boat_speed = boat_speed; */
 
-        update_pos(boat, boat_speed);
 
         update_pos(boat, boat_speed);
 
         /* resolve boat vectors */
-        float boat_x = boat->boat_speed * cos(boat_angle),
-              boat_y = boat->boat_speed * sin(boat_angle);
+        float boat_x = boat->boat_speed * cosf(boat_angle),
+              boat_y = boat->boat_speed * sinf(boat_angle);
 
         /* resolve wind vectors */
-        float wind_x = wind_speed * cos(wind_angle), 
-              wind_y = wind_speed * sin(wind_angle);
+        float wind_x = wind_speed * cosf(wind_angle), 
+              wind_y = wind_speed * sinf(wind_angle);
 
 
         /* calculate vector product */
         float app_wind_x = boat_x + wind_x, app_wind_y = boat_y + wind_y;
         
         /* determine vector components */
-        float temp = (180 * atan(app_wind_y / app_wind_x)) / M_PI;
+        float temp = (180 * atan(app_wind_y / app_wind_x)) / PI;
 
         env->app_wind_dir = (temp < 0) ? temp + 360 : temp;
         env->app_wind_speed = sqrt(app_wind_x * app_wind_x + app_wind_y * app_wind_y);
@@ -88,13 +73,8 @@ int update_state(char *data, Env_data env, Boat_data boat)
 static void update_pos(Boat_data boat, float boat_speed)
 {
         /* convert velocity vectors to angular velocity */
-<<<<<<< HEAD
-        float boat_x = boat_speed * cosf(degrees_to_radians(boat->heading)),
-              boat_y = boat_speed * sinf(degrees_to_radians(boat->heading));
-=======
-        float boat_x = boat_speed * cos(degrees_to_radians(boat->heading)),
-              boat_y = boat_speed * sin(degrees_to_radians(boat->heading));
->>>>>>> parent of 0569818... Revert "Merge branch 'master' of https://github.com/joshpfosi/trst_algorithm"
+        float boat_x = boat_speed * cosff(degrees_to_radians(boat->heading)),
+              boat_y = boat_speed * sinff(degrees_to_radians(boat->heading));
 
         /* convert tangential velocity vectors to angular velocity */
         float ang_vel_y = boat_y / EARTH_R;
@@ -107,28 +87,20 @@ static void update_pos(Boat_data boat, float boat_speed)
         /* add angular velocity times time to current position
          * and update boat's position and convert back */
        /* TODO what is unit of time of update?  one second ?*/ 
-<<<<<<< HEAD
         boat->pos.lon = radians_to_degrees(long_rad + ang_vel_y / RATE);
         boat->pos.lat = radians_to_degrees(lat_rad  + ang_vel_x / RATE);
-=======
-        boat->pos.lon = radians_to_degrees(long_rad + ang_vel_y * RATE);
-        boat->pos.lat = radians_to_degrees(lat_rad  + ang_vel_x * RATE);
->>>>>>> parent of 0569818... Revert "Merge branch 'master' of https://github.com/joshpfosi/trst_algorithm"
 }
 
 static inline float degrees_to_radians(float deg) /*TODO helper functions? */ 
 {
-        return (deg * M_PI) / 180;
+        return (deg * PI) / 180;
 }
 
 static inline float radians_to_degrees(float rads)
 {
-        return (rads / M_PI) * 180;
+        return (rads / PI) * 180;
 }
-<<<<<<< HEAD
-=======
 
->>>>>>> parent of 0569818... Revert "Merge branch 'master' of https://github.com/joshpfosi/trst_algorithm"
 unsigned read_waypts(FILE *fp, Position *waypts, unsigned size) {
     char *line = malloc(16);
     unsigned num_waypoints = (fgetc(fp) - 48), i;
