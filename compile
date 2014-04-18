@@ -26,7 +26,7 @@ do
 done
 
 case $link in
-  all|trst) gcc $FLAGS -o trst main.o input.o navigate.o
+  all|trst) gcc $FLAGS -o trst main.o input.o navigate.o polar.o
               linked=yes ;;
 esac
 
