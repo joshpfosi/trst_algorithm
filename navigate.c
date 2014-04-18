@@ -133,10 +133,11 @@ int adjust_rudder(int rudder_angle) {
  */
 void update_pid(Rudder_PID_data pid, Angle error) {
     if(pid->pos > ERROR_HISTORY_CAP){
-        pid->integral -= pid->prev_errors[pid->pos % ERROR_HISTORY_CAP];    
+        pid->integral -= pid->prev_errors[pid->pos];    
     }
     pid->integral += error;
-    pid->prev_errors[pid->pos % ERROR_HISTORY_CAP] = error;
+    pid->prev_errors[pid->pos] = error;
+    pid->pos = (pid->pos++) % ERROR_HISTORY_CAP;
 }
 
 
