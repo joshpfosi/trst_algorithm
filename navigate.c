@@ -16,15 +16,17 @@
 
 #define MAX_WAYPTS 10
 #define GROOVE 5 /* tolerance to be off exact course == 5 degrees */
-#define TACK_THRESHOLD 45 /* tolerance to not tack */
+/* #define TACK_THRESHOLD 45 */
 #define CLOSE_HAULED_ANGLE 50
 
 int skipper(Navigator nav);
 Angle ang_btwn_positions(Position pos1, Position pos2);
 Angle ang_btwn_angles(Angle theta, Angle phi);
 Angle ang_to_wind(Angle wind, Angle heading);
+static inline float degrees_to_radians(float deg); /*TODO helper functions? */ 
+static inline float radians_to_degrees(float rad); /*TODO helper functions? */ 
 int adjust_heading(Navigator nav, Angle off);
-int adjust_sails(Navigator nav);
+int adjust_sails(Angle to_wind);
 void trim_sail(Angle trim); /* trim between max and min trim */
 int adjust_rudder(int rudder_angle);
 void update_pid(Rudder_PID_data pid, Angle error);
@@ -80,12 +82,39 @@ int skipper(Navigator nav) {
     Angle ang_to_waypt = ang_btwn_positions(nav->boat->pos, 
             nav->waypts[nav->current_waypt]);
 
+    Angle wind_ang    = nav->env->wind_dir;
+    /* TODO if wind_ang is relative to boat, set heading = 0 */
+    Angle heading     = nav->boat->heading;
+    Angle ang_to_wind = abs(ang_to_wind(wind_ang, heading));
+    Angle ideal_ang = ang_to_waypt;
+    /* if the waypt is in the No-Go-Zone then we calculate the closer tack, and
+     * set that to our "ideal" heading */
+    if (is_upwind(ang_to_wind, ang_to_waypt) == 0) {
+        if (ang_btwn_angles(ang_to_wind, heading) > 0) {
+            ideal_ang = ang_to_wind + CLOSE_HAULED_ANGLE;
+        } else {
+            ideal_ang = ang_to_wind - CLOSE_HAULED_ANGLE;
+        }
+    }
+
+    Angle error = ang_btwn_angles(ideal_ang, heading);
     /* if heading adjustment impossible w/o irons / tack / gype */
-    if (adjust_heading(nav, ang_to_waypt) || adjust_sails(nav))
+    if (adjust_heading(nav, error) || adjust_sails(ang_to_wind))
         return 1; /* one of the calls couldn't recover */
 
     /* return 0 if everything was resolvable */
     return 0;
+}
+
+/* Args: ang_to_wind, ang_to_waypt
+ * Purpose:
+ * Returns 0 iff waypt is upwind, defined by CLOSE_HAULED_ANGLE
+ */
+int is_upwind(Angle ang_to_wind, Angle ang_to_waypt) {
+    if (abs(ang_btwn_angles(ang_to_wind, ang_to_waypt) < CLOSE_HAULED_ANGLE) {
+        return 0;
+    }
+    return 1;
 }
 
 /* Purpose: Assess current heading and waypoint and adjust accordingly 
@@ -121,18 +150,14 @@ int adjust_heading(Navigator nav, Angle error) {
  */
 const unsigned MIN_TRIM = 0;
 const unsigned MAX_TRIM = 90;
-int adjust_sails(Navigator nav) {
-    Angle wind_ang = nav->env->wind_dir;
-    /* TODO if wind_ang is relative to boat, set heading = 0 */
-    Angle heading    = nav->boat->heading;
-    Angle to_wind = abs(ang_to_wind(wind_ang, heading));
+int adjust_sails(Angle to_wind) {
     /* 45 < to_wind < 180 */
     /* MIN_TRIM < trim < MAX_TRIM */
     Angle trim = (MAX_TRIM - MIN_TRIM) / (180 - CLOSE_HAULED_ANGLE)
                                        * (to_wind - CLOSE_HAULED_ANGLE)
                                        + MIN_TRIM;
-    if (trim < 0) {
-        trim = 0;
+    if (trim < MIN_TRIM) {
+        trim = MIN_TRIM;
     }
 /*    trim_sail(trim);*/
     return 0;
@@ -161,11 +186,16 @@ void update_pid(Rudder_PID_data pid, Angle error) {
 
 /* Args: two Positions
  * Purpose: Calculate the angle defined by pos1 and pos2, using pos1 as origin
- * Returns the angle in standard position
+ * Returns the angle in standard position between 0 and 360
  */
 Angle ang_btwn_positions(Position pos1, Position pos2) {
-    (void)pos1; (void)pos2;
-    return 0;
+
+    Angle ang_in_rads = atan2(pos2.lat - pos1.lat, pos2.lon - pos1.lon);
+    Angle ang_in_degs = radians_to_degrees(ang_in_rads);
+    if (ang_in_degs < 0) {
+        ang_in_degs += 360;
+    }
+    return ang_in_degs;
 }
 
 /* Args: two Vectors
@@ -186,4 +216,14 @@ Angle ang_to_wind(Angle wind, Angle heading) {
                 a -= 360;
         }
         return a;
+}
+
+static inline float degrees_to_radians(float deg)
+{
+    return M_PI * deg / 180;
+}
+
+static inline float radians_to_degrees(float rad)
+{
+    return 180 * rad / M_PI;
 }
