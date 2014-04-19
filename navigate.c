@@ -17,12 +17,15 @@
 #define MAX_WAYPTS 10
 #define GROOVE 5 /* tolerance to be off exact course == 5 degrees */
 #define TACK_THRESHOLD 45 /* tolerance to not tack */
+#define CLOSE_HAULED_ANGLE 50
 
 int skipper(Navigator nav);
 Angle ang_btwn_positions(Position pos1, Position pos2);
 Angle ang_btwn_angles(Angle theta, Angle phi);
+Angle ang_to_wind(Angle wind, Angle heading);
 int adjust_heading(Navigator nav, Angle off);
 int adjust_sails(Navigator nav);
+void trim_sail(Angle trim); /* trim between max and min trim */
 int adjust_rudder(int rudder_angle);
 void update_pid(Rudder_PID_data pid, Angle error);
 
@@ -114,9 +117,24 @@ int adjust_heading(Navigator nav, Angle error) {
 
 /* Purpose: Assess sail trim and wind and adjust accordingly 
  * Returns 0 if successful, nonzero otherwise
+ * currently always returns 0
  */
+const unsigned MIN_TRIM = 0;
+const unsigned MAX_TRIM = 90;
 int adjust_sails(Navigator nav) {
-    (void)nav;
+    Angle wind_ang = nav->env->wind_dir;
+    /* TODO if wind_ang is relative to boat, set heading = 0 */
+    Angle heading    = nav->boat->heading;
+    Angle to_wind = abs(ang_to_wind(wind_ang, heading));
+    /* 45 < to_wind < 180 */
+    /* MIN_TRIM < trim < MAX_TRIM */
+    Angle trim = (MAX_TRIM - MIN_TRIM) / (180 - CLOSE_HAULED_ANGLE)
+                                       * (to_wind - CLOSE_HAULED_ANGLE)
+                                       + MIN_TRIM;
+    if (trim < 0) {
+        trim = 0;
+    }
+/*    trim_sail(trim);*/
     return 0;
 }
 
@@ -152,8 +170,20 @@ Angle ang_btwn_positions(Position pos1, Position pos2) {
 
 /* Args: two Vectors
  * Purpose: Calculate the angle between to vectors
- * Returns the angle
+ * Returns the angle 
  */
-Angle ang_btwn_angles(Angle theta, Angle phi) {
-    return theta - phi;
+Angle ang_btwn_angles(Angle a1, Angle a2) {
+    return a2 - a1;
+}
+/* Args: two directions
+ * Purpose: determine angle to wind for sail trim 
+ * Notes: starboard is positive angle, port is negative angle
+ *        angle returned (ar): -180 < ar <= 180
+ */
+Angle ang_to_wind(Angle wind, Angle heading) {
+        Angle a = heading - wind;
+        if (a > 180) {
+                a -= 360;
+        }
+        return a;
 }

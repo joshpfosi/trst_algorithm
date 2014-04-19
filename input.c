@@ -40,7 +40,7 @@ int update_state(char *data, Env_data env, Boat_data boat)
 /*              boat_speed = 10, */
               boat_speed = ideal_speed(env, boat), 
               wind_angle = (PI * env->wind_dir) / 180, 
-              wind_angle = degrees_to_radians(env->wind_dir),
+/*              wind_angle = degrees_to_radians(env->wind_dir),*/
               wind_speed = env->wind_speed;
         
         /* boat->boat_speed = boat_speed; */
@@ -73,8 +73,8 @@ int update_state(char *data, Env_data env, Boat_data boat)
 static void update_pos(Boat_data boat, float boat_speed)
 {
         /* convert velocity vectors to angular velocity */
-        float boat_x = boat_speed * cosff(degrees_to_radians(boat->heading)),
-              boat_y = boat_speed * sinff(degrees_to_radians(boat->heading));
+        float boat_x = boat_speed * cosf(degrees_to_radians(boat->heading)),
+              boat_y = boat_speed * sinf(degrees_to_radians(boat->heading));
 
         /* convert tangential velocity vectors to angular velocity */
         float ang_vel_y = boat_y / EARTH_R;
