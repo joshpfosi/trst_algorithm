@@ -1,6 +1,6 @@
 /*   File: input.c
  *   By: Alex Tong, Date: Tue Mar 11
- *   Last Updated: Mon Apr 14 19:01:22
+ *   Last Updated: Thu Apr 24 20:35:11
  *
  *  file for reading in input as specified in state_rep.h
  */
@@ -42,6 +42,7 @@ int update_state(char *data, Env_data env, Boat_data boat)
               wind_angle = (PI * env->wind_dir) / 180, 
 /*              wind_angle = degrees_to_radians(env->wind_dir),*/
               wind_speed = env->wind_speed;
+              fprintf(stderr, "ideal speed == %f\n", boat_speed);
         
         /* boat->boat_speed = boat_speed; */
 
@@ -87,8 +88,9 @@ static void update_pos(Boat_data boat, float boat_speed)
         /* add angular velocity times time to current position
          * and update boat's position and convert back */
        /* TODO what is unit of time of update?  one second ?*/ 
-        boat->pos.lon = radians_to_degrees(long_rad + ang_vel_y / RATE);
-        boat->pos.lat = radians_to_degrees(lat_rad  + ang_vel_x / RATE);
+        boat->pos.lat = radians_to_degrees(lat_rad + ang_vel_y / RATE);
+        boat->pos.lon = radians_to_degrees(long_rad  + ang_vel_x / RATE);
+        fprintf(stderr, "boat position == %f, %f\n", boat->pos.lon, boat->pos.lat);
 }
 
 static inline float degrees_to_radians(float deg) /*TODO helper functions? */ 

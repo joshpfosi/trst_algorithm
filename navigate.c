@@ -1,6 +1,6 @@
 /*   File: high_level.c
  *   By: Joshua Pfosi, Date: Fri Mar 21
- *   Last Updated: Sun Mar 30 16:36:50
+ *   Last Updated: Thu Apr 24 20:32:06
  *
  *   Implementation of navigator for algorithm
  *   Takes in input from sensor, parsed by main.c in a loop and decides
@@ -23,13 +23,22 @@ int skipper(Navigator nav);
 Angle ang_btwn_positions(Position pos1, Position pos2);
 Angle ang_btwn_angles(Angle theta, Angle phi);
 Angle ang_to_wind(Angle wind, Angle heading);
-static inline float degrees_to_radians(float deg); /*TODO helper functions? */ 
-static inline float radians_to_degrees(float rad); /*TODO helper functions? */ 
 int adjust_heading(Navigator nav, Angle off);
 int adjust_sails(Angle to_wind);
 void trim_sail(Angle trim); /* trim between max and min trim */
 int adjust_rudder(int rudder_angle);
 void update_pid(Rudder_PID_data pid, Angle error);
+int is_upwind(Angle angle_to_wind, Angle ang_to_waypt);
+
+//static inline float degrees_to_radians(float deg)
+//{
+//    return M_PI * deg / 180;
+//}
+
+static inline float radians_to_degrees(float rad)
+{
+    return 180 * rad / M_PI;
+}
 
 /* Args: Viable file for sensor input
  * Purpose: Parse input and pass data to skipper
@@ -79,27 +88,28 @@ int read_data(FILE *input) {
  * Returns 0 iff encountered no unresolvable problems */
 int skipper(Navigator nav) {
 
-    Angle ang_to_waypt = ang_btwn_positions(nav->boat->pos, 
+    Angle ang_to_waypt  = ang_btwn_positions(nav->boat->pos, 
             nav->waypts[nav->current_waypt]);
+    fprintf(stderr, "ang_to_waypt == %f\n", ang_to_waypt); /* debugging */
 
-    Angle wind_ang    = nav->env->wind_dir;
+    Angle wind_ang      = nav->env->wind_dir;
     /* TODO if wind_ang is relative to boat, set heading = 0 */
-    Angle heading     = nav->boat->heading;
-    Angle ang_to_wind = abs(ang_to_wind(wind_ang, heading));
-    Angle ideal_ang = ang_to_waypt;
+    Angle heading       = nav->boat->heading;
+    Angle angle_to_wind = abs(ang_to_wind(wind_ang, heading));
+    Angle ideal_ang     = ang_to_waypt;
     /* if the waypt is in the No-Go-Zone then we calculate the closer tack, and
      * set that to our "ideal" heading */
-    if (is_upwind(ang_to_wind, ang_to_waypt) == 0) {
-        if (ang_btwn_angles(ang_to_wind, heading) > 0) {
-            ideal_ang = ang_to_wind + CLOSE_HAULED_ANGLE;
+    if (is_upwind(wind_ang, ang_to_waypt) == 0) {
+        if (ang_btwn_angles(wind_ang, heading) > 0) {
+            ideal_ang = wind_ang + CLOSE_HAULED_ANGLE;
         } else {
-            ideal_ang = ang_to_wind - CLOSE_HAULED_ANGLE;
+            ideal_ang = wind_ang - CLOSE_HAULED_ANGLE;
         }
     }
 
     Angle error = ang_btwn_angles(ideal_ang, heading);
     /* if heading adjustment impossible w/o irons / tack / gype */
-    if (adjust_heading(nav, error) || adjust_sails(ang_to_wind))
+    if (adjust_heading(nav, error) || adjust_sails(angle_to_wind))
         return 1; /* one of the calls couldn't recover */
 
     /* return 0 if everything was resolvable */
@@ -111,10 +121,7 @@ int skipper(Navigator nav) {
  * Returns 0 iff waypt is upwind, defined by CLOSE_HAULED_ANGLE
  */
 int is_upwind(Angle ang_to_wind, Angle ang_to_waypt) {
-    if (abs(ang_btwn_angles(ang_to_wind, ang_to_waypt) < CLOSE_HAULED_ANGLE) {
-        return 0;
-    }
-    return 1;
+    return !(abs(ang_btwn_angles(ang_to_wind, ang_to_waypt) < CLOSE_HAULED_ANGLE));
 }
 
 /* Purpose: Assess current heading and waypoint and adjust accordingly 
@@ -141,6 +148,11 @@ int adjust_heading(Navigator nav, Angle error) {
         adjust_rudder(rudder_angle);
     }
     update_pid(pid, error);
+#ifdef DATA_GEN
+    fprintf(stderr, "heading == %f\n", nav->boat->heading);
+    fprintf(stderr, "error == %f\n", error);
+    nav->boat->heading -= error;
+#endif
     return 0;
 }
 
@@ -189,7 +201,7 @@ void update_pid(Rudder_PID_data pid, Angle error) {
  * Returns the angle in standard position between 0 and 360
  */
 Angle ang_btwn_positions(Position pos1, Position pos2) {
-
+    fprintf(stderr, "pos1 %f, %f pos2 %f, %f\n", pos1.lat, pos1.lon, pos2.lat, pos2.lon);
     Angle ang_in_rads = atan2(pos2.lat - pos1.lat, pos2.lon - pos1.lon);
     Angle ang_in_degs = radians_to_degrees(ang_in_rads);
     if (ang_in_degs < 0) {
@@ -218,12 +230,3 @@ Angle ang_to_wind(Angle wind, Angle heading) {
         return a;
 }
 
-static inline float degrees_to_radians(float deg)
-{
-    return M_PI * deg / 180;
-}
-
-static inline float radians_to_degrees(float rad)
-{
-    return 180 * rad / M_PI;
-}
