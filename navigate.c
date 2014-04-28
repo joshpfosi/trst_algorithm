@@ -1,6 +1,6 @@
 /*   File: high_level.c
  *   By: Joshua Pfosi, Date: Fri Mar 21
- *   Last Updated: Sun Apr 27 12:32:27
+ *   Last Updated: Sun Apr 27 20:26:23
  *
  *   Implementation of navigator for algorithm
  *   Takes in input from sensor, parsed by main.c in a loop and decides
@@ -14,23 +14,29 @@
 #include "input.h"
 #include "state_rep.h"
 
-#define MAX_WAYPTS 10
-#define GROOVE 5 /* tolerance to be off exact course == 5 degrees */
+#define MAX_WAYPTS         10
+#define GROOVE             5 /* tolerance to be off exact course == 5 degrees */
 #define CLOSE_HAULED_ANGLE 50
-#define WAYPT_RADIUS 0.1 /* arbitrary for now */
+#define WAYPT_RADIUS       0.1 /* arbitrary for now */
+#define MIN_TRIM           0
+#define MAX_TRIM           90
 
 int skipper(Navigator nav);
+int adjust_heading(Navigator nav, Angle off);
+int adjust_sails(Navigator nav, Angle to_wind);
+void luff(Navigator nav);
+void trim_sail(Angle trim); /* trim between max and min trim */
+int adjust_rudder(int rudder_angle);
+
+/* subroutines */
+int is_upwind(Angle angle_to_wind, Angle ang_to_waypt);
+void update_pid(Rudder_PID_data pid, Angle error);
+
+/* helper functions */
 Angle ang_btwn_positions(Position pos1, Position pos2);
 Angle ang_btwn_angles(Angle theta, Angle phi);
 Angle ang_to_wind(Angle wind, Angle heading);
-int adjust_heading(Navigator nav, Angle off);
-int adjust_sails(Navigator nav, Angle to_wind);
-void trim_sail(Angle trim); /* trim between max and min trim */
-int adjust_rudder(int rudder_angle);
-void update_pid(Rudder_PID_data pid, Angle error);
-int is_upwind(Angle angle_to_wind, Angle ang_to_waypt);
 float distance_btwn_positions(Position pos1, Position pos2);
-void luff(Navigator nav);
 
 //static inline float degrees_to_radians(float deg)
 //{
@@ -90,9 +96,8 @@ int read_data(FILE *input) {
  * Returns 0 iff encountered no unresolvable problems */
 int skipper(Navigator nav) {
 
-    Position pos   = nav->boat->pos,
-             waypt = nav->waypts[nav->current_waypt]; 
-
+    Position pos        = nav->boat->pos,
+             waypt      = nav->waypts[nav->current_waypt]; 
     Angle wind_ang      = nav->env->wind_dir;
     Angle heading       = nav->boat->heading;
     Angle ang_to_waypt  = ang_btwn_positions(pos, waypt);
@@ -100,7 +105,6 @@ int skipper(Navigator nav) {
     Angle ideal_ang     = ang_to_waypt;
 
     if (distance_btwn_positions(pos, waypt) < WAYPT_RADIUS) {
-        fprintf(stdout, "incrementing\n");
         nav->current_waypt++;
     }
     if (nav->current_waypt >= nav->num_waypts) {
@@ -173,8 +177,6 @@ int adjust_heading(Navigator nav, Angle error) {
  * Returns 0 if successful, nonzero otherwise
  * currently always returns 0
  */
-const unsigned MIN_TRIM = 0;
-const unsigned MAX_TRIM = 90;
 int adjust_sails(Navigator nav, Angle to_wind) {
     /* 45 < to_wind < 180 */
     /* MIN_TRIM < trim < MAX_TRIM */
@@ -213,8 +215,8 @@ void update_pid(Rudder_PID_data pid, Angle error) {
 
 void luff(Navigator nav) {
 #ifdef DATA_GEN
-    nav->boat->heading = nav->env->wind_dir;
-    nav->boat->sail_pos = 90;
+    nav->boat->heading = nav->env->wind_dir; /* head upwind */
+    nav->boat->sail_pos = 90; /* sails all out */
 #endif
     /* add in real luff function later */
 }
