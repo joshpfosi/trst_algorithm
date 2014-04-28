@@ -58,13 +58,13 @@ from functools import partial
 #    to data_gen.py
 # * Add Pause button to pause callback
 
-maxLon = -105.1621          # top right longitude
-maxLat = 40.0868            # top right latitude
-minLon = -105.2898          # bottom left longitude
-minLat = 40.001             # bottom left latitude
+maxLon = -100               # top right longitude
+maxLat =  100               # top right latitude
+minLon = -100               # bottom left longitude
+minLat =  100               # bottom left latitude
 
 # image dimensions in pixels
-MAP_WIDTH = 1049
+MAP_WIDTH  = 1049
 MAP_HEIGHT = 700
 
 # width of side nav bars

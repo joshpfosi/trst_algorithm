@@ -1,6 +1,6 @@
 /*   File: env_data_gen.c
  *   By: Joshua Pfosi, Date: Mon Mar 24
- *   Last Updated: Sun Mar 30 21:53:29
+ *   Last Updated: Sun Apr 27 20:36:35
  *
  *   Data generation engine for navigation simulations
  *   Limitation: Without boat heading, cannot calculate apparent wind vector
@@ -23,14 +23,14 @@
 #include <stdio.h>
 #include <time.h>
 
-#define NUM_LINES_DEFAULT 100
-#define WIND_DIR_DEFAULT 0
-#define WIND_SPEED_DEFAULT 10
-#define SHIFT_DEFAULT 0
-#define SHIFT_SEVERITY_DIR 10
+#define NUM_LINES_DEFAULT    100
+#define WIND_DIR_DEFAULT     0
+#define WIND_SPEED_DEFAULT   10
+#define SHIFT_DEFAULT        0
+#define SHIFT_SEVERITY_DIR   10
 #define SHIFT_SEVERITY_SPEED 1
-#define STEADY_DUR 10
-#define SHIFT_DUR 4
+#define STEADY_DUR           10
+#define SHIFT_DUR            4
 
 void output_data(int, float, float, int);
 

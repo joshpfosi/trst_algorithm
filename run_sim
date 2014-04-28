@@ -10,4 +10,5 @@
 #
 # Args: same optional args the ./gen_data takes for same purpose
 
+echo `cat waypoints.data`
 ./gen_data $1 $2 $3 $4 | cat waypoints.data - | ./trst

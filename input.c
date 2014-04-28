@@ -1,6 +1,6 @@
 /*   File: input.c
  *   By: Alex Tong, Date: Tue Mar 11
- *   Last Updated: Sun Apr 27 12:31:07
+ *   Last Updated: Sun Apr 27 20:47:36
  *
  *  file for reading in input as specified in state_rep.h
  */
@@ -48,6 +48,7 @@ int update_state(char *data, Env_data env, Boat_data boat)
 
 
         update_pos(boat, boat_speed);
+        boat->boat_speed = boat_speed;
 
         /* resolve boat vectors */
         float boat_x = boat->boat_speed * cosf(boat_angle),

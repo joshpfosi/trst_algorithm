@@ -1,6 +1,6 @@
 /*   File: state_rep.h
  *   By: Alex Tong, Date: Fri Mar 21
- *   Last Updated: Mon Mar 24 11:41:50
+ *   Last Updated: Sun Apr 27 20:35:03
  *
  *  Input formatting and general struct definitions
  */
@@ -24,11 +24,12 @@
     #define DATA_ARGS          &(env->wind_dir), &(env->wind_speed),\
                                &(env->app_wind_dir), &(env->app_wind_speed)
 
-    #define OUTPUT_FORMAT      "%f;%f;%f;%f;%f;%f;%f;%f;%f\n"
+    #define OUTPUT_FORMAT      "%f;%f;%f;%f;%f;%f;%f;%f;%f;%f\n"
     #define OUTPUT_ARGS        env->wind_dir, env->wind_speed,\
                                env->app_wind_dir, env->app_wind_speed,\
                                boat->rud_pos, boat->sail_pos,\
-                               boat->pos.lat, boat->pos.lon, boat->heading
+                               boat->pos.lat, boat->pos.lon, boat->heading, \
+                               boat->boat_speed
 #endif
 
 /* meanigful name */
