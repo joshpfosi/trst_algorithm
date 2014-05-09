@@ -35,10 +35,10 @@ def write_test_data(maxLat = 40.0868, minLat = 40.001, stepLat = 0.001, maxLon =
           45,                         # heading
           7))                         # speed
 
-        # write human data
-        data.write("{0};{1};{2};{3};{4};{5};{6};{7};{8};{9}\n".format((4*i)%360,
-          10, (5*i)%360, 8, -i%5, (4*i + 180)%360, latlon[length - i - 1][0], 
-          latlon[length - i - 1][1], 225, 7))
+        ## write human data
+        #data.write("{0};{1};{2};{3};{4};{5};{6};{7};{8};{9}\n".format((4*i)%360,
+        #  10, (5*i)%360, 8, -i%5, (4*i + 180)%360, latlon[length - i - 1][0], 
+        #  latlon[length - i - 1][1], 225, 7))
 
     data.close()
 
