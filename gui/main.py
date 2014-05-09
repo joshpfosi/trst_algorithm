@@ -59,10 +59,10 @@ from functools import partial
 #    to data_gen.py
 # * Add Pause button to pause callback
 
-maxLon =  -105.1621         # top right longitude
-maxLat =  40.0868           # top right latitude
-minLon = -105.2896          # bottom left longitude
-minLat =  40.001            # bottom left latitude
+maxLon =   100              # top right longitude
+maxLat =   100              # top right latitude
+minLon =  -100              # bottom left longitude
+minLat =  -100              # bottom left latitude
 
 # image dimensions in pixels
 MAP_WIDTH  = 1049
@@ -73,7 +73,7 @@ SIDEBAR = 200
 NAVBAR = 50
 
 # fake baud rate
-BAUD_RATE = 1
+BAUD_RATE = 0.1
 
 def latToY(targetLat):
     """
@@ -90,11 +90,27 @@ def lonToX(targetLon):
 class stdinRead(Thread):
     #set as a thread to allow for lags in stdin or no stdin at all
     def __init__(self, *largs, **kwargs):
-        super(stdinRead, self).__init__(*largs, **kwargs)
+        super(stdinRead, self).__init__()
         self.daemon = True
         self.queue = deque()
         self.quit = False
         self.index = 0
+        num_waypts = raw_input();
+        waypts = sys.stdin.readline().strip().split(';')
+        for x in range(0, (int(num_waypts))):
+            waypt = waypts[x].split(',')
+            print "printing"
+            print waypt
+            print "done"
+            y = latToY((float(waypt[0])))
+            x = lonToX((float(waypt[1])))
+            print 'Lon: %f' % x
+            print 'Lat: %f' % y
+            marker = Marker(pos = (x - 5, y - 5))
+            marker.layout = map
+            largs[0].add_widget(marker)
+
+
 
     def parse_data(self, data):
         """
@@ -210,6 +226,7 @@ class Updater(Widget):
 
             # update algorithm velocity
             theta = (math.pi * data_algor['Heading']) / 180
+            veloc.canvas.clear()
             with veloc.canvas:
                 #Label(text = 'Heading', padding_x = -20)
                 Color(0, 1, 0)
@@ -289,7 +306,7 @@ class gui(App):
         layout.add_widget(navbar)
 
         updater = Updater()
-        updater.stdin = stdinRead()
+        updater.stdin = stdinRead(navbar.map)
         updater.stdin.start()
 
         Clock.schedule_interval(partial(updater.pullData, navbar.map, navbar.envdata, 

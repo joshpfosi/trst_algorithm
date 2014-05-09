@@ -1,6 +1,6 @@
 /*   File: high_level.c
  *   By: Joshua Pfosi, Date: Fri Mar 21
- *   Last Updated: Sun Apr 27 20:26:23
+ *   Last Updated: Fri May 09 15:07:39
  *
  *   Implementation of navigator for algorithm
  *   Takes in input from sensor, parsed by main.c in a loop and decides
@@ -180,7 +180,7 @@ int adjust_heading(Navigator nav, Angle error) {
 int adjust_sails(Navigator nav, Angle to_wind) {
     /* 45 < to_wind < 180 */
     /* MIN_TRIM < trim < MAX_TRIM */
-    Angle trim = (MAX_TRIM - MIN_TRIM) / (180 - CLOSE_HAULED_ANGLE)
+    Angle trim = (float)(MAX_TRIM - MIN_TRIM) / (180 - CLOSE_HAULED_ANGLE)
                                        * (to_wind - CLOSE_HAULED_ANGLE)
                                        + MIN_TRIM;
     if (trim < MIN_TRIM) {
