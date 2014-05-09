@@ -58,10 +58,10 @@ from functools import partial
 #    to data_gen.py
 # * Add Pause button to pause callback
 
-maxLon = -100               # top right longitude
-maxLat =  100               # top right latitude
-minLon = -100               # bottom left longitude
-minLat =  100               # bottom left latitude
+maxLon =  -105.1621         # top right longitude
+maxLat =  40.0868           # top right latitude
+minLon = -105.2896          # bottom left longitude
+minLat =  40.001            # bottom left latitude
 
 # image dimensions in pixels
 MAP_WIDTH  = 1049
@@ -247,9 +247,11 @@ class AlgorData(GridLayout):
 class RudderPosition(Widget):
     def build(self):
         pass
+
 class Velocity(Widget):
     def build(self):
         pass
+
 class SailPosition(Widget):
     def build(self):
         pass
@@ -284,8 +286,8 @@ class gui(App):
         updater.stdin = stdinRead()
         updater.stdin.start()
 
-        Clock.schedule_interval(partial(updater.pullData, navbar.map, 
-            navbar.envdata, algordata.rp, algordata.sp, algordata.v), BAUD_RATE)
+        Clock.schedule_interval(partial(updater.pullData, navbar.map, navbar.envdata, 
+            algordata.rp, algordata.sp, algordata.v), BAUD_RATE)
 
         return layout
 

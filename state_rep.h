@@ -1,6 +1,6 @@
 /*   File: state_rep.h
  *   By: Alex Tong, Date: Fri Mar 21
- *   Last Updated: Sun Apr 27 20:35:03
+ *   Last Updated: Fri May 09 12:37:23
  *
  *  Input formatting and general struct definitions
  */
@@ -10,12 +10,13 @@
 
 /* enviroment input defines */
 #ifndef DATA_GEN
-    #define NUM_MEMS           9
+    #define NUM_MEMS           10
     #define DATA_FORMAT_STRING "%f;%f;%f;%f;%f;%f;%f;%f;%f\n"
     #define DATA_ARGS          &(env->wind_dir), &(env->wind_speed),\
                            &(env->app_wind_dir), &(env->app_wind_speed),\
                            &(boat->rud_pos), &(boat->sail_pos),\
-                           &(boat->pos.lat), &(boat->pos.lon), &(boat->heading)
+                           &(boat->pos.lat), &(boat->pos.lon), &(boat->heading) \
+                           &(boat->boat_speed)
 #endif
 
 #ifdef DATA_GEN
