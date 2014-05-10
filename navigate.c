@@ -14,7 +14,7 @@
 #include "input.h"
 #include "state_rep.h"
 
-#define MAX_WAYPTS         10
+#define MAX_WAYPTS         10000
 #define GROOVE             5 /* tolerance to be off exact course == 5 degrees */
 #define CLOSE_HAULED_ANGLE 50
 #define WAYPT_RADIUS       0.1 /* arbitrary for now */

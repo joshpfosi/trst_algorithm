@@ -18,7 +18,7 @@
 
 extern int read_data(FILE *input);
 
-int main(int argc, char **argv) {
+int main(int argc, char *argv[]) {
 
     FILE *fp = NULL;
     int exit_status = 0;
