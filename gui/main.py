@@ -10,6 +10,7 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.anchorlayout import AnchorLayout
+from kivy.uix.label import Label
 from kivy.clock import Clock
 from kivy.uix.widget import Widget
 from random import randint, choice
@@ -58,10 +59,10 @@ from functools import partial
 #    to data_gen.py
 # * Add Pause button to pause callback
 
-maxLon = -100               # top right longitude
-maxLat =  100               # top right latitude
-minLon = -100               # bottom left longitude
-minLat =  100               # bottom left latitude
+maxLon =   100              # top right longitude
+maxLat =   100              # top right latitude
+minLon =  -100              # bottom left longitude
+minLat =  -100              # bottom left latitude
 
 # image dimensions in pixels
 MAP_WIDTH  = 1049
@@ -72,7 +73,7 @@ SIDEBAR = 200
 NAVBAR = 50
 
 # fake baud rate
-BAUD_RATE = 1
+BAUD_RATE = 0.1
 
 def latToY(targetLat):
     """
@@ -89,11 +90,27 @@ def lonToX(targetLon):
 class stdinRead(Thread):
     #set as a thread to allow for lags in stdin or no stdin at all
     def __init__(self, *largs, **kwargs):
-        super(stdinRead, self).__init__(*largs, **kwargs)
+        super(stdinRead, self).__init__()
         self.daemon = True
         self.queue = deque()
         self.quit = False
         self.index = 0
+        num_waypts = raw_input();
+        waypts = sys.stdin.readline().strip().split(';')
+        for x in range(0, (int(num_waypts))):
+            waypt = waypts[x].split(',')
+            print "printing"
+            print waypt
+            print "done"
+            y = latToY((float(waypt[0])))
+            x = lonToX((float(waypt[1])))
+            print 'Lon: %f' % x
+            print 'Lat: %f' % y
+            marker = Marker(pos = (x - 5, y - 5))
+            marker.layout = map
+            largs[0].add_widget(marker)
+
+
 
     def parse_data(self, data):
         """
@@ -148,27 +165,27 @@ class Updater(Widget):
         try:
             # The repetition of code here is sad but subtly difficult to abstract
             data_algor = self.stdin.pop()
-            data_human = self.stdin.pop()
+            #data_human = self.stdin.pop()
 
             # update algorithm lat/lon
             x = lonToX(data_algor['Lon'])
             y = latToY(data_algor['Lat'])
             print 'Lon: %f' % x
             print 'Lat: %f' % y
-            marker = Marker(pos = (x - 5, y - 5))
+            marker = MarkerGreen(pos = (x - 5, y - 5))
             marker.layout = map
             map.add_widget(marker)
 
-            # update human lat/lon
-            print 'Lon real: %f' % data_human['Lon']
-            print 'Latreal: %f' % data_human['Lon']
-            x = lonToX(data_human['Lon'])
-            y = latToY(data_human['Lat'])
-            print 'Lon: %f' % x
-            print 'Lat: %f' % y
-            markerGreen = MarkerGreen(pos = (x - 5, y - 5))
-            markerGreen.layout = map
-            map.add_widget(markerGreen)
+            ## update human lat/lon
+            #print 'Lon real: %f' % data_human['Lon']
+            #print 'Latreal: %f' % data_human['Lon']
+            #x = lonToX(data_human['Lon'])
+            #y = latToY(data_human['Lat'])
+            #print 'Lon: %f' % x
+            #print 'Lat: %f' % y
+            #markerGreen = MarkerGreen(pos = (x - 5, y - 5))
+            #markerGreen.layout = map
+            #map.add_widget(markerGreen)
 
 
             r = 75
@@ -176,14 +193,15 @@ class Updater(Widget):
             # update algorithm rudder pos
             theta = (math.pi * data_algor['RudPos']) / 180
             with rudderpos.canvas:
-                Color(1, 0, 0)
-                Line(points = (100, 100, 100 + r * math.cos(theta), 100 + r * math.sin(theta)))
-
-            # update human rudder pos 
-            theta = (math.pi * data_human['RudPos']) / 180
-            with rudderpos.canvas:
+                #Label(text = 'Rudder', padding_x = -20)
                 Color(0, 1, 0)
                 Line(points = (100, 100, 100 + r * math.cos(theta), 100 + r * math.sin(theta)))
+
+            ## update human rudder pos 
+            #theta = (math.pi * data_human['RudPos']) / 180
+            #with rudderpos.canvas:
+            #    Color(0, 1, 0)
+            #    Line(points = (100, 100, 100 + r * math.cos(theta), 100 + r * math.sin(theta)))
 
             sailpos.canvas.clear()
             # update algorithm sail pos
@@ -193,28 +211,32 @@ class Updater(Widget):
             print r*math.cos(theta)
             print r*math.sin(theta)
             with sailpos.canvas:
-                Color(1, 0, 0)
-                Line(points = (100, 350, 100 + r * math.cos(theta), 350 + r * math.sin(theta)))
-
-            # update human sail pos 
-            theta = (math.pi * data_human['SailPos']) / 180
-            with sailpos.canvas:
+                #Label(text = 'Sail', padding_x = -20)
                 Color(0, 1, 0)
                 Line(points = (100, 350, 100 + r * math.cos(theta), 350 + r * math.sin(theta)))
 
-            veloc.canvas.clear()
-            r = data_algor['Speed'] + 75;
+            ## update human sail pos 
+            #theta = (math.pi * data_human['SailPos']) / 180
+            #with sailpos.canvas:
+            #    Color(0, 1, 0)
+            #    Line(points = (100, 350, 100 + r * math.cos(theta), 350 + r * math.sin(theta)))
+
+            #veloc.canvas.clear()
+            #r = data_algor['Speed'] + 75;
+
             # update algorithm velocity
             theta = (math.pi * data_algor['Heading']) / 180
+            veloc.canvas.clear()
             with veloc.canvas:
-                Color(1, 0, 0)
-                Line(points = (100, 583, 100 + r * math.cos(theta), 583 + r * math.sin(theta)))
-
-            # update human velocity 
-            theta = (math.pi * data_human['Heading']) / 180
-            with veloc.canvas:
+                #Label(text = 'Heading', padding_x = -20)
                 Color(0, 1, 0)
                 Line(points = (100, 583, 100 + r * math.cos(theta), 583 + r * math.sin(theta)))
+
+            ## update human velocity 
+            #theta = (math.pi * data_human['Heading']) / 180
+            #with veloc.canvas:
+            #    Color(0, 1, 0)
+            #    Line(points = (100, 583, 100 + r * math.cos(theta), 583 + r * math.sin(theta)))
 
             envdata.wind_direction = data_algor['Wind Dir']
             envdata.wind_speed = data_algor['Wind Speed']
@@ -246,10 +268,13 @@ class AlgorData(GridLayout):
 
 class RudderPosition(Widget):
     def build(self):
+        #self.add_widget(self.disp)
         pass
+
 class Velocity(Widget):
     def build(self):
         pass
+
 class SailPosition(Widget):
     def build(self):
         pass
@@ -281,11 +306,11 @@ class gui(App):
         layout.add_widget(navbar)
 
         updater = Updater()
-        updater.stdin = stdinRead()
+        updater.stdin = stdinRead(navbar.map)
         updater.stdin.start()
 
-        Clock.schedule_interval(partial(updater.pullData, navbar.map, 
-            navbar.envdata, algordata.rp, algordata.sp, algordata.v), BAUD_RATE)
+        Clock.schedule_interval(partial(updater.pullData, navbar.map, navbar.envdata, 
+            algordata.rp, algordata.sp, algordata.v), BAUD_RATE)
 
         return layout
 
