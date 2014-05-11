@@ -13,7 +13,7 @@ case $1 in
 esac
 
 # these flags max out warnings and debug info
-FLAGS="-g -Wall -Wextra -Werror -Wfatal-errors -std=c99 -pedantic"
+FLAGS="-g -Wall -Wextra -Werror -Wfatal-errors -pedantic"
 
 case $# in
   0) set *.c ;; # if no args are given, compile all .c files
@@ -26,7 +26,7 @@ do
 done
 
 case $link in
-  all|trst) gcc $FLAGS -o trst main.o input.o navigate.o polar.o
+  all|trst) gcc $FLAGS -o trst main.o input.o navigate.o polar.o helper.o
               linked=yes ;;
 esac
 

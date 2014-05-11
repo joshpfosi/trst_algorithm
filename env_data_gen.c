@@ -1,6 +1,6 @@
 /*   File: env_data_gen.c
  *   By: Joshua Pfosi, Date: Mon Mar 24
- *   Last Updated: Sun Apr 27 20:36:35
+ *   Last Updated: Sat May 10 18:03:48
  *
  *   Data generation engine for navigation simulations
  *   Limitation: Without boat heading, cannot calculate apparent wind vector
@@ -8,8 +8,9 @@
  *               in navigate.c for the DATA_GEN phase
  *
  *   Args: a number of a lines,
- *         a wind speed about which the generated speed fluctuates,
- *         a wind direction, and the "shiftiness" (a number, s, between 0-10
+ *         a wind direction, 
+ *         a wind speed about which the generated speed fluctuates, and
+ *         a measure of "shiftiness" (a number, s, between 0-10
  *         that causes the wind speed and direction to shift by 1 * s, and 
  *         10 * s respectively
  *

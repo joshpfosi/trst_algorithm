@@ -59,13 +59,13 @@ from functools import partial
 #    to data_gen.py
 # * Add Pause button to pause callback
 
-maxLon =   100              # top right longitude
-maxLat =   100              # top right latitude
-minLon =  -100              # bottom left longitude
-minLat =  -100              # bottom left latitude
+maxLon =  -71.147237        # top right longitude
+maxLat =   42.431960        # top right latitude
+minLon =  -71.148567        # bottom left longitude
+minLat =   42.431365        # bottom left latitude
 
 # image dimensions in pixels
-MAP_WIDTH  = 1049
+MAP_WIDTH  = 957
 MAP_HEIGHT = 700
 
 # width of side nav bars
@@ -73,7 +73,7 @@ SIDEBAR = 200
 NAVBAR = 50
 
 # fake baud rate
-BAUD_RATE = 0.1
+BAUD_RATE = 1
 
 def latToY(targetLat):
     """
@@ -193,7 +193,6 @@ class Updater(Widget):
             # update algorithm rudder pos
             theta = (math.pi * data_algor['RudPos']) / 180
             with rudderpos.canvas:
-                #Label(text = 'Rudder', padding_x = -20)
                 Color(0, 1, 0)
                 Line(points = (100, 100, 100 + r * math.cos(theta), 100 + r * math.sin(theta)))
 
@@ -211,7 +210,6 @@ class Updater(Widget):
             print r*math.cos(theta)
             print r*math.sin(theta)
             with sailpos.canvas:
-                #Label(text = 'Sail', padding_x = -20)
                 Color(0, 1, 0)
                 Line(points = (100, 350, 100 + r * math.cos(theta), 350 + r * math.sin(theta)))
 
@@ -228,7 +226,6 @@ class Updater(Widget):
             theta = (math.pi * data_algor['Heading']) / 180
             veloc.canvas.clear()
             with veloc.canvas:
-                #Label(text = 'Heading', padding_x = -20)
                 Color(0, 1, 0)
                 Line(points = (100, 583, 100 + r * math.cos(theta), 583 + r * math.sin(theta)))
 

@@ -17,9 +17,17 @@
            angle to the first waypt.
  */
 
+#include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include "assert.h"
 #include "state_rep.h"
+#include "waypoint_expansion.h"
+
+static inline float radians_to_degrees(float rad)
+{
+    return 180 * rad / M_PI;
+}
 
 /* Args: two Positions
  * Purpose: Calculate the angle defined by pos1 and pos2, using pos1 as origin
@@ -59,17 +67,17 @@ Angle ang_btwn_angles(Angle a1, Angle a2) {
     return to_return;
 }
 
-typedef struct Waypoints {
+struct Waypoints {
     char *rounding_dirs;
     Position *waypts;
     unsigned size;
-}* Waypoints;
+};
 
 Waypoints read_waypts(FILE *fp) {
     Waypoints wp = malloc(sizeof(*wp));
     unsigned i;
-    assert(fscanf(fp, "%u", &(wp->size) == 1));
-    assert(wp->size >= 0 && wp->size <= size);
+    assert(fscanf(fp, "%u", &(wp->size)) == 1);
+    assert(wp->size >= 0);
 
     /* read in each waypt */
     for (i = 0; i < wp->size; i++) {
@@ -81,7 +89,7 @@ Waypoints read_waypts(FILE *fp) {
                wp->rounding_dirs[i] == 'n');
     }
     fgetc(fp); /* discard the newline */
-    return num_waypoints;
+    return wp;
 }
 
 /* the size in degrees of the min segmenet size */
@@ -98,15 +106,49 @@ int calc_divs(Angle a1, Angle a2, int dir) {
     return (dir * mod360(tmp)) / num_segs;
 }
 
-int expand_waypts(FILE *fp, Waypoints wp) {
+/* prints a waypoint with a given position*/
+void print_wpt_pos(FILE *fp, Position p) {
+    assert(fp != NULL);
+    fprintf(fp, "%f,%f;", p.lat, p.lon);
+}
+
+/* prints all waypoints disregarding rounding information, leaving waypoints
+ * unexpanded
+ * WARNING: unlike expand_waypts(FILE *, Waypoints) this function prints first
+ *          waypoint
+ */
+int print_waypts(FILE *fp, Waypoints wp, float r) {
+    assert(fp != NULL);
+    (void) r;
+    unsigned i = 0;
+    for (i = 0 ; i < wp->size; i++) {
+        print_wpt_pos(fp, wp->waypts[i]);
+    }
+    return 0;
+}
+
+/* given position, angle, radius, calculates a new position
+ * radius must be given in lat long terms */
+Position calc_wpt_from_pos_and_ang(Position p, Angle a, float r) {
+    Position to_return;
+    to_return.lat = p.lat + r * sinf(a);
+    to_return.lon = p.lon + r * cosf(a);
+    return to_return;
+}
+
+const int WAYPOINT_ERROR_FACTOR = 5; /* allowable error on produced waypoint
+                                        angle */
+
+int expand_waypts(FILE *fp, Waypoints wp, float r) {
     unsigned i = 0;
     Angle init_ang, fin_ang, ang_past, ang_toward;
+    int dir, wp_sep;
     for (i = 1; i < wp->size-1; i++) {
         /* round mark to p[ort] s[tarbord] n[either] */
-        char rc = rounding_dirs[i];
+        char rc = wp->rounding_dirs[i];
         /* print angle and continue for case n */
         if (rc == 'n') {
-            fprintf(fp, "%f,%f;", wp->waypts[i].lat, wp->waypts[i].long);
+            fprintf(fp, "%f,%f;", wp->waypts[i].lat, wp->waypts[i].lon);
             continue;
         }
         ang_past = ang_btwn_positions(wp->waypts[i], wp->waypts[i-1]);
@@ -116,39 +158,17 @@ int expand_waypts(FILE *fp, Waypoints wp) {
 
         /* rotate axis relative to the init_angle */
         /* currently implementing a "circle" as 20+ degree segments */
-        int wp_sep = calc_divs(init_ang, fin_ang);
-
-        print_expand_wpt(init_ang, fin_ang, theta);
+        dir = rc == 'p' ? 1 : -1; /* rc is already not 'n' */
+        wp_sep = calc_divs(init_ang, fin_ang, dir);
+        int tmp = init_ang;
+        Position tmp_wp;
+        while (abs(tmp - fin_ang) > WAYPOINT_ERROR_FACTOR) {
+            tmp_wp = calc_wpt_from_pos_and_ang(wp->waypts[i], tmp, r);
+            print_wpt_pos(fp, tmp_wp);
+        }
     }
-    assert(fprintf(fp, "%f,%f;", wp->waypts[i].lat, wp->waypts[i].long) == 2);
-
+    assert(fprintf(fp, "%f,%f;", wp->waypts[i].lat, wp->waypts[i].lon) == 2);
 
     return 0;
 }
 
-
-int main(int argc, char *argv[])
-{
-    FILE *fp = NULL;
-    int exit_status = 0;
-
-    /* reads in data until there is an error */
-    if (argc > 2) { /* cannot handle more than 1 argument */
-        fprintf(stderr, "%s: usage: [filename] [radius] \n", argv[0]);
-        exit(1);
-    }
-    else if (argc == 1) /* no filename was given so use stdin */
-        fp = stdin; 
-    else /* num_args == 2 so use filename */
-        fp = open_or_abort(argv[1], "r");
-
-    /* start main program */
-    Waypoints wp = read_waypts(input, nav->waypts, MAX_WAYPTS);
-
-    fclose(fp);
-
-    if (exit_status != 0) {
-        fprintf(stderr, "Aborting due to unresolvable input error\n");
-    }
-    return exit_status;
-}
