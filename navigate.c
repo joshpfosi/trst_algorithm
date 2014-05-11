@@ -1,6 +1,6 @@
 /*   File: high_level.c
  *   By: Joshua Pfosi, Date: Fri Mar 21
- *   Last Updated: Sun May 11 02:21:02
+ *   Last Updated: Sun May 11 15:54:19
  *
  *   Implementation of navigator for algorithm
  *   Takes in input from sensor, parsed by main.c in a loop and decides
@@ -59,7 +59,9 @@ int read_data(FILE *input) {
             if ((status = skipper(nav)) != 0) { /* unresolvable issue */
                 return status;
             }
+#ifdef DATA_GEN
             output_state(stdout, nav->env, nav->boat);
+#endif
         }
     }
 
@@ -160,8 +162,10 @@ static int adjust_sails(Navigator nav, Angle to_wind) {
 
 #ifdef DATA_GEN
     nav->boat->sail_pos = trim;
+#else 
+    (void)nav;
 #endif
-/*    trim_sail(trim);*/
+/*    trim_sail(trim); */
     return 0;
 }
 

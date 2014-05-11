@@ -1,6 +1,6 @@
 /*   File: input.c
  *   By: Alex Tong, Date: Tue Mar 11
- *   Last Updated: Sat May 10 21:58:55
+ *   Last Updated: Sun May 11 15:55:48
  *
  *  file for reading in input as specified in state_rep.h
  */
@@ -15,8 +15,35 @@
 #include "helper.h"
 
 
-static void   update_pos(Boat_data boat, double boat_speed);
+#ifdef DATA_GEN
 extern double ideal_speed(Env_data env, Boat_data boat);
+
+static void update_pos(Boat_data boat, double boat_speed)
+{
+    /* convert velocity vectors to angular velocity */
+    double boat_x = boat_speed * cosf(degrees_to_radians(boat->heading)),
+          boat_y = boat_speed * sinf(degrees_to_radians(boat->heading));
+
+    /* convert tangential velocity vectors to angular velocity */
+    double ang_vel_y = boat_y / EARTH_R;
+    double ang_vel_x = boat_x / EARTH_R;
+
+    /* convert position to radians */
+    double long_rad = degrees_to_radians(boat->pos.lon);
+    double lat_rad  = degrees_to_radians(boat->pos.lat);
+
+    /* add angular velocity times time to current position
+     * and update boat's position and convert back
+     * NOTE: f = 1 / t, so t = 1 / f, hence division
+     */
+    boat->pos.lat = radians_to_degrees(lat_rad + ang_vel_y * RATE);
+    boat->pos.lon = radians_to_degrees(long_rad  + ang_vel_x * RATE);
+}
+
+void output_state(FILE *fp, Env_data env, Boat_data boat) {
+    fprintf(fp, OUTPUT_FORMAT, OUTPUT_ARGS);
+}
+#endif
 
 /* reads a data string into boat and enviroment data */
 int update_state(char *data, Env_data env, Boat_data boat)
@@ -37,9 +64,6 @@ int update_state(char *data, Env_data env, Boat_data boat)
           wind_angle = (M_PI * env->wind_dir) / 180, 
           /*              wind_angle = degrees_to_radians(env->wind_dir),*/
           wind_speed = env->wind_speed;
-    //fprintf(stdout, "boat speed == %f\n", boat_speed); /* debugging */
-
-
 
     update_pos(boat, boat_speed);
     boat->boat_speed = boat_speed;
@@ -66,29 +90,6 @@ int update_state(char *data, Env_data env, Boat_data boat)
     return 0;
 }
 
-static void update_pos(Boat_data boat, double boat_speed)
-{
-    /* convert velocity vectors to angular velocity */
-    double boat_x = boat_speed * cosf(degrees_to_radians(boat->heading)),
-          boat_y = boat_speed * sinf(degrees_to_radians(boat->heading));
-
-    /* convert tangential velocity vectors to angular velocity */
-    double ang_vel_y = boat_y / EARTH_R;
-    double ang_vel_x = boat_x / EARTH_R;
-
-    /* convert position to radians */
-    double long_rad = degrees_to_radians(boat->pos.lon);
-    double lat_rad  = degrees_to_radians(boat->pos.lat);
-
-    /* add angular velocity times time to current position
-     * and update boat's position and convert back
-     * NOTE: f = 1 / t, so t = 1 / f, hence division
-     */
-    boat->pos.lat = radians_to_degrees(lat_rad + ang_vel_y * RATE);
-    boat->pos.lon = radians_to_degrees(long_rad  + ang_vel_x * RATE);
-}
-
-
 unsigned read_waypts(FILE *fp, Position *waypts, unsigned size) {
     char *line = malloc(16); /* TODO 16 I believe is arbitrary and needs to change */
     unsigned num_waypoints, i;
@@ -103,9 +104,5 @@ unsigned read_waypts(FILE *fp, Position *waypts, unsigned size) {
 
     free(line);
     return num_waypoints;
-}
-
-void output_state(FILE *fp, Env_data env, Boat_data boat) {
-    fprintf(fp, OUTPUT_FORMAT, OUTPUT_ARGS);
 }
 

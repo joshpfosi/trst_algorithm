@@ -1,6 +1,6 @@
 /*   File: env_data_gen.c
  *   By: Joshua Pfosi, Date: Mon Mar 24
- *   Last Updated: Sat May 10 18:03:48
+ *   Last Updated: Sun May 11 15:57:07
  *
  *   Data generation engine for navigation simulations
  *   Limitation: Without boat heading, cannot calculate apparent wind vector
@@ -32,35 +32,6 @@
 #define SHIFT_SEVERITY_SPEED 1
 #define STEADY_DUR           10
 #define SHIFT_DUR            4
-
-void output_data(int, float, float, int);
-
-int main(int argc, char **argv) {
-    int num_lines = NUM_LINES_DEFAULT, shift = SHIFT_DEFAULT;
-    float wind_dir = WIND_DIR_DEFAULT, 
-          wind_speed = WIND_SPEED_DEFAULT;
-
-    /* cannot handle more than 3 argument */
-    if (argc > 5) { 
-        fprintf(stderr, "%s: usage: [num_lines] [wind dir] [wind speed] "
-                "[shiftiness]\n", argv[0]);
-        exit(1);
-    }
-
-    /* overwrite each default by num of args */
-    if (argc > 1)
-        num_lines = atoi(argv[1]);
-    if (argc > 2)
-        wind_dir = atof(argv[2]);
-    if (argc > 3)
-        wind_speed = atof(argv[3]);
-    if (argc > 4)
-        shift = atoi(argv[4]);
-
-    output_data(num_lines, wind_dir, wind_speed, shift);
-
-    return 0;
-}
 
 void output_data(int num_lines, float wind_dir, float wind_speed, int shift) {
     /* allow fluctuations less than shift */
@@ -117,3 +88,31 @@ void output_data(int num_lines, float wind_dir, float wind_speed, int shift) {
         fprintf(stdout, "%f;%f;%f;%f\n", temp_dir, temp_speed, 0.0, 0.0);
     }
 }
+
+int main(int argc, char **argv) {
+    int num_lines = NUM_LINES_DEFAULT, shift = SHIFT_DEFAULT;
+    float wind_dir = WIND_DIR_DEFAULT, 
+          wind_speed = WIND_SPEED_DEFAULT;
+
+    /* cannot handle more than 3 argument */
+    if (argc > 5) { 
+        fprintf(stderr, "%s: usage: [num_lines] [wind dir] [wind speed] "
+                "[shiftiness]\n", argv[0]);
+        exit(1);
+    }
+
+    /* overwrite each default by num of args */
+    if (argc > 1)
+        num_lines = atoi(argv[1]);
+    if (argc > 2)
+        wind_dir = atof(argv[2]);
+    if (argc > 3)
+        wind_speed = atof(argv[3]);
+    if (argc > 4)
+        shift = atoi(argv[4]);
+
+    output_data(num_lines, wind_dir, wind_speed, shift);
+
+    return 0;
+}
+
