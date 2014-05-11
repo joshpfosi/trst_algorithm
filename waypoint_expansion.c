@@ -19,9 +19,17 @@
            angle to the first waypt.
  */
 
+#include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include "assert.h"
 #include "state_rep.h"
+#include "waypoint_expansion.h"
+
+static inline double radians_to_degrees(double rad)
+{
+    return 180 * rad / M_PI;
+}
 
 /* Args: two Positions
  * Purpose: Calculate the angle defined by pos1 and pos2, using pos1 as origin
@@ -49,7 +57,6 @@ Angle mod360(Angle a1) {
     }
     return a1;
 }
- 
 
 /* Args: two Vectors
  * Purpose: Calculate the angle between to vectors
@@ -61,28 +68,45 @@ Angle ang_btwn_angles(Angle a1, Angle a2) {
     return to_return;
 }
 
+<<<<<<< HEAD
 /* Waypoint structure for abstraction
  */
 
 typedef struct Waypoints {
+=======
+struct Waypoints {
+>>>>>>> b99116d8dd97784ed44ead5e43ce186f43cd42f1
     char *rounding_dirs;
         /* n for no round, p and s for port and starboard */
     Position *waypts;
     unsigned size;
-}* Waypoints;
+};
 
 Waypoints read_waypts(FILE *fp) {
     Waypoints wp = malloc(sizeof(*wp));
+<<<<<<< HEAD
 
     assert(fscanf(fp, "%u", &(wp->size) == 1));
     assert(wp->size >= 0 && wp->size <= size);
 
+=======
+    unsigned i;
+    assert(fscanf(fp, "%u\n", &(wp->size)) == 1);
+    assert(wp->size >= 0);
+    wp->rounding_dirs = malloc(wp->size);
+    wp->waypts        = malloc(sizeof(*(wp->waypts)) * wp->size);
+    fprintf(stderr, "malloc successful\n");
+>>>>>>> b99116d8dd97784ed44ead5e43ce186f43cd42f1
     /* read in each waypt */
     unsigned i;
     for (i = 0; i < wp->size; i++) {
-        assert(fscanf(fp, "%c%f,%f;", &(wp->rounding_dirs[i]),
+/*        assert(fscanf(fp, "%c%lf,%lf;", &(wp->rounding_dirs[i]),*/
+/*                                      &(wp->waypts[i].lat),*/
+/*                                      &(wp->waypts[i].lon)) == 3);*/
+        fprintf(stderr, "%u\n", fscanf(fp, "%c%lf,%lf;", &(wp->rounding_dirs[i]),
                                       &(wp->waypts[i].lat),
-                                      &(wp->waypts[i].lon)) == 3);
+                                      &(wp->waypts[i].lon)));
+    
         assert(wp->rounding_dirs[i] == 'p' ||
                wp->rounding_dirs[i] == 's' ||
                wp->rounding_dirs[i] == 'n');
@@ -106,6 +130,7 @@ const float TURN_RADIUS = 3.0;
  *          earlier calculated information
  *      note: step size is signed so it will go in the correct direction
  */
+<<<<<<< HEAD
 
 int print_expand_wpt(FILE *fp, 
                      Angle alpha, Angle beta, Angle step, 
@@ -144,11 +169,59 @@ int print_expand_wpt(FILE *fp,
 
 int expand_waypts(FILE *fp, Waypoints wp) {
     int error_status = 0;
+=======
+double calc_divs(Angle a1, Angle a2, int dir) {
+    /* port == true */
+    fprintf(stderr, "a1 = %f, a2 = %f, dir = %d\n", a1, a2, dir);
+    int tmp = dir + 1 ? a2 - a1 : a1 - a2;
+    int num_segs = ((int)mod360(tmp)) / SEG_SIZE;
+    fprintf(stderr, "numsegs = %d\n", num_segs);
+    return (dir * mod360(tmp)) / num_segs;
+}
+
+/* prints a waypoint with a given position*/
+void print_wpt_pos(FILE *fp, Position p) {
+    assert(fp != NULL);
+    fprintf(fp, "%f,%f;", p.lat, p.lon);
+}
+
+/* prints all waypoints disregarding rounding information, leaving waypoints
+ * unexpanded
+ * WARNING: unlike expand_waypts(FILE *, Waypoints) this function prints first
+ *          waypoint
+ */
+int print_waypts(FILE *fp, Waypoints wp, double r) {
+    assert(fp != NULL);
+    (void) r;
+    fprintf(fp, "%u\n", wp->size);
+    unsigned i = 0;
+    for (i = 0 ; i < wp->size; i++) {
+        print_wpt_pos(fp, wp->waypts[i]);
+    }
+    return 0;
+}
+
+/* given position, angle, radius, calculates a new position
+ * radius must be given in lat long terms */
+Position calc_wpt_from_pos_and_ang(Position p, Angle a, double r) {
+    Position to_return;
+    to_return.lat = p.lat + r * sinf(a);
+    to_return.lon = p.lon + r * cosf(a);
+    return to_return;
+}
+
+const int WAYPOINT_ERROR_FACTOR = 5; /* allowable error on produced waypoint
+                                        angle */
+
+int expand_waypts(FILE *fp, Waypoints wp, double r) {
+>>>>>>> b99116d8dd97784ed44ead5e43ce186f43cd42f1
     unsigned i = 0;
     Angle init_ang, fin_ang, ang_past, ang_toward;
+    int dir;
+    double wp_sep;
     for (i = 1; i < wp->size-1; i++) {
         /* round mark to p[ort] s[tarbord] n[either] */
-        char rc = rounding_dirs[i];
+        char rc = wp->rounding_dirs[i];
         /* print angle and continue for case n */
         if (rc == 'n') {
             fprintf(fp, "%f,%f;", wp->waypts[i].lat, wp->waypts[i].lon);
@@ -162,16 +235,33 @@ int expand_waypts(FILE *fp, Waypoints wp) {
 
 
         /* currently implementing a "circle" as 20+ degree segments */
+<<<<<<< HEAD
         /*Angle wp_step = calc_divs(init_ang, fin_ang, dir);*/
 
         error_status += print_expand_wpt(fp, init_ang, fin_ang, wp->waypts[i], dir);
     }
     assert(fprintf(fp, "%f,%f;", wp->waypts[i].lat, wp->waypts[i].lon) == 2);
 
+=======
+        dir = rc == 'p' ? 1 : -1; /* rc is already not 'n' */
+        wp_sep = calc_divs(init_ang, fin_ang, dir);
+        fprintf(stderr, "wp_sep = %f", wp_sep);
+        int tmp = init_ang;
+        Position tmp_wp;
+        while (abs(tmp - fin_ang) > WAYPOINT_ERROR_FACTOR) {
+/*            fprintf(stderr, "creating new waypoint\n");*/
+            tmp_wp = calc_wpt_from_pos_and_ang(wp->waypts[i], tmp, r);
+            print_wpt_pos(fp, tmp_wp);
+            tmp += wp_sep;
+        }
+    }
+    assert(fprintf(fp, "%f,%f;", wp->waypts[i].lat, wp->waypts[i].lon) == 2);
+>>>>>>> b99116d8dd97784ed44ead5e43ce186f43cd42f1
 
     return error_status;
 }
 
+<<<<<<< HEAD
 
 int main(int argc, char *argv[])
 {
@@ -200,3 +290,5 @@ int main(int argc, char *argv[])
     }
     return exit_status;
 }
+=======
+>>>>>>> b99116d8dd97784ed44ead5e43ce186f43cd42f1
