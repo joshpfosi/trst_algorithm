@@ -24,7 +24,7 @@
 #include "state_rep.h"
 #include "waypoint_expansion.h"
 
-static inline float radians_to_degrees(float rad)
+static inline double radians_to_degrees(double rad)
 {
     return 180 * rad / M_PI;
 }
@@ -55,7 +55,6 @@ Angle mod360(Angle a1) {
     }
     return a1;
 }
- 
 
 /* Args: two Vectors
  * Purpose: Calculate the angle between to vectors
@@ -81,7 +80,7 @@ Waypoints read_waypts(FILE *fp) {
 
     /* read in each waypt */
     for (i = 0; i < wp->size; i++) {
-        assert(fscanf(fp, "%c%f,%f;", &(wp->rounding_dirs[i]),
+        assert(fscanf(fp, "%c%lf,%lf;", &(wp->rounding_dirs[i]),
                                       &(wp->waypts[i].lat),
                                       &(wp->waypts[i].lon)) == 3);
         assert(wp->rounding_dirs[i] == 'p' ||
@@ -117,7 +116,7 @@ void print_wpt_pos(FILE *fp, Position p) {
  * WARNING: unlike expand_waypts(FILE *, Waypoints) this function prints first
  *          waypoint
  */
-int print_waypts(FILE *fp, Waypoints wp, float r) {
+int print_waypts(FILE *fp, Waypoints wp, double r) {
     assert(fp != NULL);
     (void) r;
     unsigned i = 0;
@@ -129,7 +128,7 @@ int print_waypts(FILE *fp, Waypoints wp, float r) {
 
 /* given position, angle, radius, calculates a new position
  * radius must be given in lat long terms */
-Position calc_wpt_from_pos_and_ang(Position p, Angle a, float r) {
+Position calc_wpt_from_pos_and_ang(Position p, Angle a, double r) {
     Position to_return;
     to_return.lat = p.lat + r * sinf(a);
     to_return.lon = p.lon + r * cosf(a);
@@ -139,7 +138,7 @@ Position calc_wpt_from_pos_and_ang(Position p, Angle a, float r) {
 const int WAYPOINT_ERROR_FACTOR = 5; /* allowable error on produced waypoint
                                         angle */
 
-int expand_waypts(FILE *fp, Waypoints wp, float r) {
+int expand_waypts(FILE *fp, Waypoints wp, double r) {
     unsigned i = 0;
     Angle init_ang, fin_ang, ang_past, ang_toward;
     int dir, wp_sep;

@@ -6,5 +6,5 @@
 typedef struct Waypoints *Waypoints;
 
 Waypoints read_waypts(FILE *fp);
-int expand_waypts(FILE *fp, Waypoints wp, float r);
-int print_waypts(FILE *fp, Waypoints wp, float r);
+int expand_waypts(FILE *fp, Waypoints wp, double r);
+int print_waypts(FILE *fp, Waypoints wp, double r);
