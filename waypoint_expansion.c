@@ -8,10 +8,12 @@
  *   around the given waypoint.
  *
  *   Input File specs: [num_wpts]\n
- *                     [p,s,n][lat],[long];...[n][lat],[long];
+ *                     [n][lat],[lon];[p,s,n][lat],[lon];...[n][lat],[lon];
  *      Note: p for round to port, s for round to starboard, n for no round
+ *            begin and end the file with the start and finish points for the boat
+ *              and denote them with n (no round)
  *   Output File spec: [num_wpts]\n
- *                     [lat],[long];...
+ *                     [lat],[lon];...
  *
  *   TODO: does this run at up time or at enter time? The problem is getting
            angle to the first waypt.
@@ -59,19 +61,24 @@ Angle ang_btwn_angles(Angle a1, Angle a2) {
     return to_return;
 }
 
+/* Waypoint structure for abstraction
+ */
+
 typedef struct Waypoints {
     char *rounding_dirs;
+        /* n for no round, p and s for port and starboard */
     Position *waypts;
     unsigned size;
 }* Waypoints;
 
 Waypoints read_waypts(FILE *fp) {
     Waypoints wp = malloc(sizeof(*wp));
-    unsigned i;
+
     assert(fscanf(fp, "%u", &(wp->size) == 1));
     assert(wp->size >= 0 && wp->size <= size);
 
     /* read in each waypt */
+    unsigned i;
     for (i = 0; i < wp->size; i++) {
         assert(fscanf(fp, "%c%f,%f;", &(wp->rounding_dirs[i]),
                                       &(wp->waypts[i].lat),
@@ -81,24 +88,62 @@ Waypoints read_waypts(FILE *fp) {
                wp->rounding_dirs[i] == 'n');
     }
     fgetc(fp); /* discard the newline */
-    return num_waypoints;
+    return wp;
 }
 
 /* the size in degrees of the min segmenet size */
 const unsigned SEG_SIZE = 20;
 
+/* radius to go around the waypoint in meters */
+const float TURN_RADIUS = 3.0;
+
 /* partitions a1 and a2 into the smallest segments > SEG_SIZE
- * a1, a2, mod360 angles
+ * alpha, beta, mod360 angles
  * dir: -1:starboard, 0:neither, 1:port
+ *      note: 0 should never happen in current implementation
+ * then:
+ * prints the waypoints given waypoint and direction and 
+ *          earlier calculated information
+ *      note: step size is signed so it will go in the correct direction
  */
-int calc_divs(Angle a1, Angle a2, int dir) {
-    /* port == true */
-    int tmp = dir + 1 ? a2 - a1 : a1 - a2;
-    int num_segs = ((int)mod360(tmp)) / SEG_SIZE;
-    return (dir * mod360(tmp)) / num_segs;
+
+int print_expand_wpt(FILE *fp, 
+                     Angle alpha, Angle beta, Angle step, 
+                     Position base, char dir) {
+
+    int int_dir;
+
+    if(dir == 'p'){
+        int_dir = 1;
+    }
+    else if(dir == 's'){
+        int_dir = -1;
+    }
+    else{
+        /* we have a problem */
+        return 1;
+    }
+
+    Angle to_use = int_dir == 1 ? ang_btwn_angles(alpha, beta) : 
+                                  ang_btwn_angles(beta, alpha);
+    int num_segs = to_use / SEG_SIZE;
+    Angle step_ang = (int_dir * to_use) / num_segs;
+
+
+    Position temp;
+
+    unsigned i;
+    for(i = 0, i < num_segs, i ++) {
+        temp.lat = base.lat + cos(alpha + i * step_ang);
+        temp.lon = base.lon + sin(alpha + i * step_ang);
+
+        fprintf(fp, "%f,%f;", temp.lat, temp.lon);
+    }
+    return 0;
 }
 
 int expand_waypts(FILE *fp, Waypoints wp) {
+    int error_status = 0;
     unsigned i = 0;
     Angle init_ang, fin_ang, ang_past, ang_toward;
     for (i = 1; i < wp->size-1; i++) {
@@ -106,24 +151,25 @@ int expand_waypts(FILE *fp, Waypoints wp) {
         char rc = rounding_dirs[i];
         /* print angle and continue for case n */
         if (rc == 'n') {
-            fprintf(fp, "%f,%f;", wp->waypts[i].lat, wp->waypts[i].long);
+            fprintf(fp, "%f,%f;", wp->waypts[i].lat, wp->waypts[i].lon);
             continue;
         }
+
         ang_past = ang_btwn_positions(wp->waypts[i], wp->waypts[i-1]);
         ang_toward = ang_btwn_positions(wp->waypts[i], wp->waypts[i+1]);
         init_ang = mod360(rc == 'p'? ang_past + 90 : ang_past + 270);
         fin_ang  = mod360(rc == 'p'? ang_toward + 270 : ang_toward + 90);
 
-        /* rotate axis relative to the init_angle */
+
         /* currently implementing a "circle" as 20+ degree segments */
-        int wp_sep = calc_divs(init_ang, fin_ang);
+        /*Angle wp_step = calc_divs(init_ang, fin_ang, dir);*/
 
-        print_expand_wpt(init_ang, fin_ang, theta);
+        error_status += print_expand_wpt(fp, init_ang, fin_ang, wp->waypts[i], dir);
     }
-    assert(fprintf(fp, "%f,%f;", wp->waypts[i].lat, wp->waypts[i].long) == 2);
+    assert(fprintf(fp, "%f,%f;", wp->waypts[i].lat, wp->waypts[i].lon) == 2);
 
 
-    return 0;
+    return error_status;
 }
 
 
@@ -144,6 +190,8 @@ int main(int argc, char *argv[])
 
     /* start main program */
     Waypoints wp = read_waypts(input, nav->waypts, MAX_WAYPTS);
+
+    exit_status += expand_waypts(fp, wp);
 
     fclose(fp);
 

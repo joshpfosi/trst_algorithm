@@ -1,7 +1,7 @@
 Tufts Robitic Sailing Team Algorithm
 ====
 
-**By: Joshua Pfosi Alex Tong, Denali Rao**
+**By: Joshua Pfosi Alex Tong, Denali Rao, Morgan Gellert**
 
 Modules
 ----

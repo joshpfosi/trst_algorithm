@@ -1,6 +1,6 @@
 /*   File: high_level.c
  *   By: Joshua Pfosi, Date: Fri Mar 21
- *   Last Updated: Fri May 09 15:07:39
+ *   Last Updated: Sun May 11 02:21:02
  *
  *   Implementation of navigator for algorithm
  *   Takes in input from sensor, parsed by main.c in a loop and decides
@@ -13,40 +13,14 @@
 #include <math.h>
 #include "input.h"
 #include "state_rep.h"
+#include "helper.h"
 
-#define MAX_WAYPTS         10000
-#define GROOVE             5 /* tolerance to be off exact course == 5 degrees */
-#define CLOSE_HAULED_ANGLE 50
-#define WAYPT_RADIUS       0.1 /* arbitrary for now */
-#define MIN_TRIM           0
-#define MAX_TRIM           90
-
-int skipper(Navigator nav);
-int adjust_heading(Navigator nav, Angle off);
-int adjust_sails(Navigator nav, Angle to_wind);
-void luff(Navigator nav);
-void trim_sail(Angle trim); /* trim between max and min trim */
-int adjust_rudder(int rudder_angle);
-
-/* subroutines */
-int is_upwind(Angle angle_to_wind, Angle ang_to_waypt);
-void update_pid(Rudder_PID_data pid, Angle error);
-
-/* helper functions */
-Angle ang_btwn_positions(Position pos1, Position pos2);
-Angle ang_btwn_angles(Angle theta, Angle phi);
-Angle ang_to_wind(Angle wind, Angle heading);
-float distance_btwn_positions(Position pos1, Position pos2);
-
-//static inline float degrees_to_radians(float deg)
-//{
-//    return M_PI * deg / 180;
-//}
-
-static inline float radians_to_degrees(float rad)
-{
-    return 180 * rad / M_PI;
-}
+static int  skipper(Navigator nav);
+static int  set_course(Navigator nav, Angle ang_to_waypt);
+static int  adjust_heading(Navigator nav, Angle off);
+static int  adjust_sails(Navigator nav, Angle to_wind);
+       void luff(Navigator nav);
+static void update_pid(Rudder_PID_data pid, Angle error);
 
 /* Args: Viable file for sensor input
  * Purpose: Parse input and pass data to skipper
@@ -62,6 +36,14 @@ int read_data(FILE *input) {
     nav->boat->PID = malloc(sizeof(*(nav->boat->PID)));
     nav->boat->PID->integral = 0;
     nav->boat->PID->pos = 0;
+
+#ifdef DATA_GEN
+    /* initial boat position will not be 0,0 most likely */
+    /* this is right off the corner of the dock */
+    nav->boat->pos.lat = 42.431555;
+    nav->boat->pos.lon = -71.147501;
+#endif
+
     nav->waypts = malloc(MAX_WAYPTS * sizeof(*(nav->waypts)));
     nav->current_waypt = 0;
     nav->num_waypts = read_waypts(input, nav->waypts, MAX_WAYPTS);
@@ -94,56 +76,45 @@ int read_data(FILE *input) {
 /* Args: Navigator as parsed from file
  * Purpose: Assesses states and calls library functions to guide robotic boat
  * Returns 0 iff encountered no unresolvable problems */
-int skipper(Navigator nav) {
+static int skipper(Navigator nav) {
+    Position pos   = nav->boat->pos,
+             waypt = nav->waypts[nav->current_waypt]; 
 
-    Position pos        = nav->boat->pos,
-             waypt      = nav->waypts[nav->current_waypt]; 
-    Angle wind_ang      = nav->env->wind_dir;
-    Angle heading       = nav->boat->heading;
-    Angle ang_to_waypt  = ang_btwn_positions(pos, waypt);
-    Angle angle_to_wind = abs(ang_to_wind(wind_ang, heading));
-    Angle ideal_ang     = ang_to_waypt;
+    /* update waypoints - if at end, start again */
+    if (distance_btwn_positions(pos, waypt) < WAYPT_RADIUS)
+        nav->current_waypt = (++nav->current_waypt)%nav->num_waypts;
 
-    if (distance_btwn_positions(pos, waypt) < WAYPT_RADIUS) {
-        nav->current_waypt++;
-    }
-    if (nav->current_waypt >= nav->num_waypts) {
-        /* luff if at last waypt */
-        luff(nav);
-        return 0;
-    }
+    /* return 0 if everything was resolvable */
+    return set_course(nav, ang_btwn_positions(pos, waypt));
+}
+
+static int set_course(Navigator nav, Angle ang_to_waypt) {
+    Angle wind_ang      = nav->env->wind_dir,
+          heading       = nav->boat->heading,
+          angle_to_wind = abs(ang_to_wind(wind_ang, heading)),
+          ideal_ang     = ang_to_waypt;
 
     /* if the waypt is in the No-Go-Zone then we calculate the closer tack, and
      * set that to our "ideal" heading */
-    if (is_upwind(wind_ang, ang_to_waypt) == 0) {
-        if (ang_btwn_angles(wind_ang, heading) > 0) {
-            ideal_ang = wind_ang + CLOSE_HAULED_ANGLE;
+    if (is_upwind(wind_ang, ang_to_waypt)) {
+        Angle temp = heading - wind_ang;
+        temp = (temp < 180) ? temp : 180 - temp;
+        if (temp > 0) {
+            ideal_ang = standardize(wind_ang + CLOSE_HAULED_ANGLE);
         } else {
-            ideal_ang = wind_ang - CLOSE_HAULED_ANGLE;
+            ideal_ang = standardize(wind_ang - CLOSE_HAULED_ANGLE);
         }
     }
 
-    Angle error = ang_btwn_angles(ideal_ang, heading);
-    /* if heading adjustment impossible w/o irons / tack / gype */
-    if (adjust_heading(nav, error) || adjust_sails(nav, angle_to_wind))
-        return 1; /* one of the calls couldn't recover */
-
-    /* return 0 if everything was resolvable */
-    return 0;
-}
-
-/* Args: ang_to_wind, ang_to_waypt
- * Purpose:
- * Returns 0 iff waypt is upwind, defined by CLOSE_HAULED_ANGLE
- */
-int is_upwind(Angle ang_to_wind, Angle ang_to_waypt) {
-    return !(abs(ang_btwn_angles(ang_to_wind, ang_to_waypt) < CLOSE_HAULED_ANGLE));
+    /* calculate error in heading and adjust heading and sails */
+    Angle error = ideal_ang - heading;
+    return adjust_heading(nav, error) || adjust_sails(nav, angle_to_wind);
 }
 
 /* Purpose: Assess current heading and waypoint and adjust accordingly 
  * Returns 0 if successful, nonzero otherwise
  */
-int adjust_heading(Navigator nav, Angle error) {
+static int adjust_heading(Navigator nav, Angle error) {
     float PROPORTIONAL_CONST = 0.2; // low level for minor adjustments
     float INTEGRAL_CONST = 0.0;
     Rudder_PID_data pid = nav->boat->PID;
@@ -161,15 +132,15 @@ int adjust_heading(Navigator nav, Angle error) {
     if (abs(error) >= GROOVE) {
         /* adjust heading */
         int rudder_angle = PROPORTIONAL_CONST * error + INTEGRAL_CONST * pid->integral;
-        adjust_rudder(rudder_angle);
+        (void)rudder_angle;
+        /* adjust_rudder(rudder_angle); */
+#ifdef DATA_GEN /* w/ real boat, above call to adjust_rudder should do this part */
+        nav->boat->heading += error;
+        nav->boat->rud_pos = 0; /* always stay straight as adjustment is instant */
+#endif
     }
     update_pid(pid, error);
-#ifdef DATA_GEN /* w/ real boat, above call to adjust_rudder should do this part */
-    //fprintf(stderr, "heading == %f\n", nav->boat->heading); /* debugging */
-    //fprintf(stderr, "error == %f\n", error);                /* debugging */
-    nav->boat->heading -= error;
-    nav->boat->rud_pos = 0; /* always stay straight as adjustment is instant */
-#endif
+
     return 0;
 }
 
@@ -177,7 +148,7 @@ int adjust_heading(Navigator nav, Angle error) {
  * Returns 0 if successful, nonzero otherwise
  * currently always returns 0
  */
-int adjust_sails(Navigator nav, Angle to_wind) {
+static int adjust_sails(Navigator nav, Angle to_wind) {
     /* 45 < to_wind < 180 */
     /* MIN_TRIM < trim < MAX_TRIM */
     Angle trim = (float)(MAX_TRIM - MIN_TRIM) / (180 - CLOSE_HAULED_ANGLE)
@@ -186,6 +157,7 @@ int adjust_sails(Navigator nav, Angle to_wind) {
     if (trim < MIN_TRIM) {
         trim = MIN_TRIM;
     }
+
 #ifdef DATA_GEN
     nav->boat->sail_pos = trim;
 #endif
@@ -193,19 +165,10 @@ int adjust_sails(Navigator nav, Angle to_wind) {
     return 0;
 }
 
-/* Purpose: Call function to adjust rudder position.
- * Returns 0 if successful, nonzero otherwise
- */
-int adjust_rudder(int rudder_angle) {
-    (void) rudder_angle;
-    //position(rudder_angle); //call function written by builders to move the rudder
-    return 0;
-}
-
 /* Purpose: updates the integral part of our pid control
  */
-void update_pid(Rudder_PID_data pid, Angle error) {
-    if(pid->pos > ERROR_HISTORY_CAP){
+static void update_pid(Rudder_PID_data pid, Angle error) {
+    if(pid->pos > ERROR_HISTORY_CAP) {
         pid->integral -= pid->prev_errors[pid->pos];    
     }
     pid->integral += error;
@@ -214,50 +177,17 @@ void update_pid(Rudder_PID_data pid, Angle error) {
 }
 
 void luff(Navigator nav) {
+<<<<<<< HEAD
 #ifdef DATA_GEN
     nav->boat->heading = nav->env->wind_dir; /* head upwind */
-    nav->boat->sail_pos = 90; /* sails all out */
+    nav->boat->sail_pos = MAX_TRIM; /* sails all out */
 #endif
     /* add in real luff function later */
 }
+=======
+    Angle error = nav->env->wind_dir - nav->boat->heading;
+>>>>>>> 5e013c95079401d8d4033cdb937898363f45b23c
 
-
-/* Args: two Positions
- * Purpose: Calculate the angle defined by pos1 and pos2, using pos1 as origin
- * Returns the angle in standard position between 0 and 360
- */
-Angle ang_btwn_positions(Position pos1, Position pos2) {
-    Angle ang_in_rads = atan2(pos2.lat - pos1.lat, pos2.lon - pos1.lon);
-    Angle ang_in_degs = radians_to_degrees(ang_in_rads);
-    if (ang_in_degs < 0) {
-        ang_in_degs += 360;
-    }
-    return ang_in_degs;
+    adjust_heading(nav, error); /* head up wind */
+    adjust_sails(nav, 180);     /* sails all the way out */
 }
-
-/* Args: two Vectors
- * Purpose: Calculate the angle between to vectors
- * Returns the angle 
- */
-Angle ang_btwn_angles(Angle a1, Angle a2) {
-    return a2 - a1;
-}
-/* Args: two directions
- * Purpose: determine angle to wind for sail trim 
- * Notes: starboard is positive angle, port is negative angle
- *        angle returned (ar): -180 < ar <= 180
- */
-Angle ang_to_wind(Angle wind, Angle heading) {
-        Angle a = heading - wind;
-        if (a > 180) {
-                a -= 360;
-        }
-        return a;
-}
-
-float distance_btwn_positions(Position pos1, Position pos2) {
-    //fprintf(stderr, "In distance_btwn, pos1 == lat = %f, lon = %f and pos2 == lat = %f, lon = %f\n", pos1.lat, pos1.lon, pos2.lat, pos2.lon); /* debugging */
-    return sqrt((pos1.lat - pos2.lat) * (pos1.lat - pos2.lat)
-            + (pos1.lon - pos2.lon) * (pos1.lon - pos2.lon));
-}
-

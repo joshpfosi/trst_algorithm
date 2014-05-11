@@ -1,6 +1,6 @@
 /*   File: state_rep.h
  *   By: Alex Tong, Date: Fri Mar 21
- *   Last Updated: Fri May 09 12:37:23
+ *   Last Updated: Sat May 10 21:45:11
  *
  *  Input formatting and general struct definitions
  */
@@ -11,7 +11,7 @@
 /* enviroment input defines */
 #ifndef DATA_GEN
     #define NUM_MEMS           10
-    #define DATA_FORMAT_STRING "%f;%f;%f;%f;%f;%f;%f;%f;%f\n"
+    #define DATA_FORMAT_STRING "%lf;%lf;%lf;%lf;%lf;%lf;%lf;%lf;%lf\n"
     #define DATA_ARGS          &(env->wind_dir), &(env->wind_speed),\
                            &(env->app_wind_dir), &(env->app_wind_speed),\
                            &(boat->rud_pos), &(boat->sail_pos),\
@@ -21,11 +21,11 @@
 
 #ifdef DATA_GEN
     #define NUM_MEMS           4
-    #define DATA_FORMAT_STRING "%f;%f;%f;%f;\n"
+    #define DATA_FORMAT_STRING "%lf;%lf;%lf;%lf;\n"
     #define DATA_ARGS          &(env->wind_dir), &(env->wind_speed),\
                                &(env->app_wind_dir), &(env->app_wind_speed)
 
-    #define OUTPUT_FORMAT      "%f;%f;%f;%f;%f;%f;%f;%f;%f;%f\n"
+    #define OUTPUT_FORMAT      "%lf;%lf;%lf;%lf;%lf;%lf;%lf;%lf;%lf;%lf\n"
     #define OUTPUT_ARGS        env->wind_dir, env->wind_speed,\
                                env->app_wind_dir, env->app_wind_speed,\
                                boat->rud_pos, boat->sail_pos,\
@@ -33,41 +33,44 @@
                                boat->boat_speed
 #endif
 
+#define MAX_WAYPTS         10
+#define GROOVE             5    
+#define CLOSE_HAULED_ANGLE 50
+#define WAYPT_RADIUS       0.000010 
+#define MIN_TRIM           0
+#define MAX_TRIM           90
+#define ERROR_HISTORY_CAP  1000 
+#define EARTH_R            6371           /* radius of earth in km */
+#define RATE               0.00010416666  /* 1 / 960 */
+
 /* meanigful name */
-typedef float Angle;
+typedef double Angle;
 
 /* stores lat/lon info in convenient package */
 typedef struct Position {
-    float lat;
-    float lon;
+    double lat;
+    double lon;
 } Position;
 
-/* may be useful */
-typedef struct Vector {
-    Angle theta;
-    Position head;
-} Vector;
+/* stores pid integral control data */
+typedef struct Rudder_PID_data {
+  double   prev_errors[ERROR_HISTORY_CAP];
+  double   integral;
+  int     pos ; /* position of next array update */
+} *Rudder_PID_data;
 
 /* stores environmental data */
 typedef struct Env_data {
     /* may replace w/ 2 vectors */
-    float wind_dir, wind_speed, app_wind_dir, app_wind_speed;
+    double wind_dir, wind_speed, app_wind_dir, app_wind_speed;
 } *Env_data;
-
-static const int ERROR_HISTORY_CAP = 1000;
-/* stores pid integral control data */
-typedef struct Rudder_PID_data {
-  float   prev_errors[1000];
-  float   integral;
-  int     pos ; /* position of next array update */
-} *Rudder_PID_data;
 
 /* stores boat related data */
 typedef struct Boat_data {
     Angle rud_pos, sail_pos, heading;
     Position pos;
     Rudder_PID_data PID;
-    float boat_speed;
+    double boat_speed;
 } *Boat_data;
 
 /* bundles complete state of navigator */
@@ -78,6 +81,5 @@ typedef struct Navigator {
     unsigned current_waypt;
     unsigned num_waypts;
 } *Navigator;
-
 
 #endif /* STATE_REP_H */
