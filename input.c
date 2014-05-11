@@ -91,7 +91,8 @@ static void update_pos(Boat_data boat, double boat_speed)
 
 unsigned read_waypts(FILE *fp, Position *waypts, unsigned size) {
     char *line = malloc(16); /* TODO 16 I believe is arbitrary and needs to change */
-    unsigned num_waypoints = (fgetc(fp) - 48), i;
+    unsigned num_waypoints, i;
+    assert(fscanf(fp, "%u", &num_waypoints) == 1);
     assert(num_waypoints >= 0 && num_waypoints <= size);
 
     /* read in each waypt */
