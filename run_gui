@@ -2,11 +2,5 @@
 
 # script to run the gui w/ simulated data
 
-if [ $# -eq 1 ]; then 
-  num=$1 
-else 
-  num=10000 
-fi
-
-cd ~/trst_algorithm
-./run_sim $num | awk '{if (++count%1000==0) print $0;}' | cat waypoints.data - | kivy gui/main.py
+./run_sim $1 $2 $3 $4 | kivy gui/main.py
+#  ./run_sim $num | awk '{if (++count%1000==0) print $0;}' | cat waypoints.data - | kivy gui/main.py
