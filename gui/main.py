@@ -73,7 +73,7 @@ SIDEBAR = 200
 NAVBAR = 50
 
 # fake baud rate
-BAUD_RATE = 1
+BAUD_RATE = 0.1
 
 def latToY(targetLat):
     """
