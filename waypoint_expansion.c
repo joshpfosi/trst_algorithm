@@ -75,14 +75,20 @@ struct Waypoints {
 Waypoints read_waypts(FILE *fp) {
     Waypoints wp = malloc(sizeof(*wp));
     unsigned i;
-    assert(fscanf(fp, "%u", &(wp->size)) == 1);
+    assert(fscanf(fp, "%u\n", &(wp->size)) == 1);
     assert(wp->size >= 0);
-
+    wp->rounding_dirs = malloc(wp->size);
+    wp->waypts        = malloc(sizeof(*(wp->waypts)) * wp->size);
+    fprintf(stderr, "malloc successful\n");
     /* read in each waypt */
     for (i = 0; i < wp->size; i++) {
-        assert(fscanf(fp, "%c%lf,%lf;", &(wp->rounding_dirs[i]),
+/*        assert(fscanf(fp, "%c%lf,%lf;", &(wp->rounding_dirs[i]),*/
+/*                                      &(wp->waypts[i].lat),*/
+/*                                      &(wp->waypts[i].lon)) == 3);*/
+        fprintf(stderr, "%u\n", fscanf(fp, "%c%lf,%lf;", &(wp->rounding_dirs[i]),
                                       &(wp->waypts[i].lat),
-                                      &(wp->waypts[i].lon)) == 3);
+                                      &(wp->waypts[i].lon)));
+    
         assert(wp->rounding_dirs[i] == 'p' ||
                wp->rounding_dirs[i] == 's' ||
                wp->rounding_dirs[i] == 'n');
@@ -98,10 +104,12 @@ const unsigned SEG_SIZE = 20;
  * a1, a2, mod360 angles
  * dir: -1:starboard, 0:neither, 1:port
  */
-int calc_divs(Angle a1, Angle a2, int dir) {
+double calc_divs(Angle a1, Angle a2, int dir) {
     /* port == true */
+    fprintf(stderr, "a1 = %f, a2 = %f, dir = %d\n", a1, a2, dir);
     int tmp = dir + 1 ? a2 - a1 : a1 - a2;
     int num_segs = ((int)mod360(tmp)) / SEG_SIZE;
+    fprintf(stderr, "numsegs = %d\n", num_segs);
     return (dir * mod360(tmp)) / num_segs;
 }
 
@@ -119,6 +127,7 @@ void print_wpt_pos(FILE *fp, Position p) {
 int print_waypts(FILE *fp, Waypoints wp, double r) {
     assert(fp != NULL);
     (void) r;
+    fprintf(fp, "%u\n", wp->size);
     unsigned i = 0;
     for (i = 0 ; i < wp->size; i++) {
         print_wpt_pos(fp, wp->waypts[i]);
@@ -141,7 +150,8 @@ const int WAYPOINT_ERROR_FACTOR = 5; /* allowable error on produced waypoint
 int expand_waypts(FILE *fp, Waypoints wp, double r) {
     unsigned i = 0;
     Angle init_ang, fin_ang, ang_past, ang_toward;
-    int dir, wp_sep;
+    int dir;
+    double wp_sep;
     for (i = 1; i < wp->size-1; i++) {
         /* round mark to p[ort] s[tarbord] n[either] */
         char rc = wp->rounding_dirs[i];
@@ -159,11 +169,14 @@ int expand_waypts(FILE *fp, Waypoints wp, double r) {
         /* currently implementing a "circle" as 20+ degree segments */
         dir = rc == 'p' ? 1 : -1; /* rc is already not 'n' */
         wp_sep = calc_divs(init_ang, fin_ang, dir);
+        fprintf(stderr, "wp_sep = %f", wp_sep);
         int tmp = init_ang;
         Position tmp_wp;
         while (abs(tmp - fin_ang) > WAYPOINT_ERROR_FACTOR) {
+/*            fprintf(stderr, "creating new waypoint\n");*/
             tmp_wp = calc_wpt_from_pos_and_ang(wp->waypts[i], tmp, r);
             print_wpt_pos(fp, tmp_wp);
+            tmp += wp_sep;
         }
     }
     assert(fprintf(fp, "%f,%f;", wp->waypts[i].lat, wp->waypts[i].lon) == 2);
