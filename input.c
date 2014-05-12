@@ -1,10 +1,6 @@
 /*   File: input.c
  *   By: Alex Tong, Date: Tue Mar 11
-<<<<<<< HEAD
- *   Last Updated: Sat May 10 21:58:55
-=======
- *   Last Updated: Sun May 11 15:55:48
->>>>>>> b99116d8dd97784ed44ead5e43ce186f43cd42f1
+ *   Last Updated: Sun May 11 21:03:04
  *
  *  file for reading in input as specified in state_rep.h
  */
@@ -19,10 +15,6 @@
 #include "helper.h"
 
 
-<<<<<<< HEAD
-static void   update_pos(Boat_data boat, double boat_speed);
-extern double ideal_speed(Env_data env, Boat_data boat);
-=======
 #ifdef DATA_GEN
 extern double ideal_speed(Env_data env, Boat_data boat);
 
@@ -52,7 +44,6 @@ void output_state(FILE *fp, Env_data env, Boat_data boat) {
     fprintf(fp, OUTPUT_FORMAT, OUTPUT_ARGS);
 }
 #endif
->>>>>>> b99116d8dd97784ed44ead5e43ce186f43cd42f1
 
 /* reads a data string into boat and enviroment data */
 int update_state(char *data, Env_data env, Boat_data boat)
@@ -73,14 +64,6 @@ int update_state(char *data, Env_data env, Boat_data boat)
           wind_angle = (M_PI * env->wind_dir) / 180, 
           /*              wind_angle = degrees_to_radians(env->wind_dir),*/
           wind_speed = env->wind_speed;
-<<<<<<< HEAD
-    //fprintf(stdout, "boat speed == %f\n", boat_speed); /* debugging */
-
-
-
-    update_pos(boat, boat_speed);
-    boat->boat_speed = boat_speed;
-=======
 
     update_pos(boat, boat_speed);
     boat->boat_speed = boat_speed;
@@ -92,17 +75,6 @@ int update_state(char *data, Env_data env, Boat_data boat)
     /* resolve wind vectors */
     double wind_x = wind_speed * cosf(wind_angle), 
           wind_y = wind_speed * sinf(wind_angle);
->>>>>>> b99116d8dd97784ed44ead5e43ce186f43cd42f1
-
-    /* resolve boat vectors */
-    double boat_x = boat->boat_speed * cosf(boat_angle),
-          boat_y = boat->boat_speed * sinf(boat_angle);
-
-<<<<<<< HEAD
-    /* resolve wind vectors */
-    double wind_x = wind_speed * cosf(wind_angle), 
-          wind_y = wind_speed * sinf(wind_angle);
-
 
     /* calculate vector product */
     double app_wind_x = boat_x + wind_x, app_wind_y = boat_y + wind_y;
@@ -115,41 +87,6 @@ int update_state(char *data, Env_data env, Boat_data boat)
 #endif
 
     return 0;
-}
-
-static void update_pos(Boat_data boat, double boat_speed)
-{
-    /* convert velocity vectors to angular velocity */
-    double boat_x = boat_speed * cosf(degrees_to_radians(boat->heading)),
-          boat_y = boat_speed * sinf(degrees_to_radians(boat->heading));
-
-    /* convert tangential velocity vectors to angular velocity */
-    double ang_vel_y = boat_y / EARTH_R;
-    double ang_vel_x = boat_x / EARTH_R;
-
-    /* convert position to radians */
-    double long_rad = degrees_to_radians(boat->pos.lon);
-    double lat_rad  = degrees_to_radians(boat->pos.lat);
-
-    /* add angular velocity times time to current position
-     * and update boat's position and convert back
-     * NOTE: f = 1 / t, so t = 1 / f, hence division
-     */
-    boat->pos.lat = radians_to_degrees(lat_rad + ang_vel_y * RATE);
-    boat->pos.lon = radians_to_degrees(long_rad  + ang_vel_x * RATE);
-=======
-    /* calculate vector product */
-    double app_wind_x = boat_x + wind_x, app_wind_y = boat_y + wind_y;
-
-    /* determine vector components */
-    double temp = (180 * atan(app_wind_y / app_wind_x)) / M_PI;
-
-    env->app_wind_dir = (temp < 0) ? temp + 360 : temp;
-    env->app_wind_speed = sqrt(app_wind_x * app_wind_x + app_wind_y * app_wind_y);
-#endif
-
-    return 0;
->>>>>>> b99116d8dd97784ed44ead5e43ce186f43cd42f1
 }
 
 
@@ -169,10 +106,3 @@ unsigned read_waypts(FILE *fp, Position *waypts, unsigned size) {
     return num_waypoints;
 }
 
-<<<<<<< HEAD
-void output_state(FILE *fp, Env_data env, Boat_data boat) {
-    fprintf(fp, OUTPUT_FORMAT, OUTPUT_ARGS);
-}
-
-=======
->>>>>>> b99116d8dd97784ed44ead5e43ce186f43cd42f1

@@ -1,10 +1,6 @@
 /*   File: high_level.c
  *   By: Joshua Pfosi, Date: Fri Mar 21
-<<<<<<< HEAD
- *   Last Updated: Sun May 11 02:21:02
-=======
- *   Last Updated: Sun May 11 15:54:19
->>>>>>> b99116d8dd97784ed44ead5e43ce186f43cd42f1
+ *   Last Updated: Sun May 11 21:05:07
  *
  *   Implementation of navigator for algorithm
  *   Takes in input from sensor, parsed by main.c in a loop and decides
@@ -169,11 +165,7 @@ static int adjust_sails(Navigator nav, Angle to_wind) {
 #else 
     (void)nav;
 #endif
-<<<<<<< HEAD
-/*    trim_sail(trim);*/
-=======
 /*    trim_sail(trim); */
->>>>>>> b99116d8dd97784ed44ead5e43ce186f43cd42f1
     return 0;
 }
 
@@ -189,21 +181,8 @@ static void update_pid(Rudder_PID_data pid, Angle error) {
 }
 
 void luff(Navigator nav) {
-<<<<<<< HEAD
-<<<<<<< HEAD
-#ifdef DATA_GEN
-    nav->boat->heading = nav->env->wind_dir; /* head upwind */
-    nav->boat->sail_pos = MAX_TRIM; /* sails all out */
-#endif
-    /* add in real luff function later */
-}
-=======
     Angle error = nav->env->wind_dir - nav->boat->heading;
->>>>>>> 5e013c95079401d8d4033cdb937898363f45b23c
-=======
-    Angle error = nav->env->wind_dir - nav->boat->heading;
->>>>>>> b99116d8dd97784ed44ead5e43ce186f43cd42f1
 
     adjust_heading(nav, error); /* head up wind */
-    adjust_sails(nav, 180);     /* sails all the way out */
+    adjust_sails(nav, MAX_TRIM);     /* sails all the way out */
 }
