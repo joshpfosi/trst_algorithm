@@ -1,6 +1,6 @@
 /*   File: input.c
  *   By: Alex Tong, Date: Tue Mar 11
- *   Last Updated: Sat May 10 21:58:55
+ *   Last Updated: Sun May 11 21:03:04
  *
  *  file for reading in input as specified in state_rep.h
  */
@@ -15,56 +15,8 @@
 #include "helper.h"
 
 
-static void   update_pos(Boat_data boat, double boat_speed);
-extern double ideal_speed(Env_data env, Boat_data boat);
-
-/* reads a data string into boat and enviroment data */
-int update_state(char *data, Env_data env, Boat_data boat)
-{
-    /* read env */
-    int re = sscanf(data, DATA_FORMAT_STRING, DATA_ARGS);
-    /* Skip badly formed lines */
-    if (re != NUM_MEMS) {
-        fprintf(stderr, "Error reading data, read in: %d / %d necessary "
-                "members\n", re, NUM_MEMS);
-        return 1;
-    }
-
 #ifdef DATA_GEN
-    double boat_angle = (M_PI * boat->heading) / 180,
-          /*              boat_speed = 10, */
-          boat_speed = ideal_speed(env, boat), 
-          wind_angle = (M_PI * env->wind_dir) / 180, 
-          /*              wind_angle = degrees_to_radians(env->wind_dir),*/
-          wind_speed = env->wind_speed;
-    //fprintf(stdout, "boat speed == %f\n", boat_speed); /* debugging */
-
-
-
-    update_pos(boat, boat_speed);
-    boat->boat_speed = boat_speed;
-
-    /* resolve boat vectors */
-    double boat_x = boat->boat_speed * cosf(boat_angle),
-          boat_y = boat->boat_speed * sinf(boat_angle);
-
-    /* resolve wind vectors */
-    double wind_x = wind_speed * cosf(wind_angle), 
-          wind_y = wind_speed * sinf(wind_angle);
-
-
-    /* calculate vector product */
-    double app_wind_x = boat_x + wind_x, app_wind_y = boat_y + wind_y;
-
-    /* determine vector components */
-    double temp = (180 * atan(app_wind_y / app_wind_x)) / M_PI;
-
-    env->app_wind_dir = (temp < 0) ? temp + 360 : temp;
-    env->app_wind_speed = sqrt(app_wind_x * app_wind_x + app_wind_y * app_wind_y);
-#endif
-
-    return 0;
-}
+extern double ideal_speed(Env_data env, Boat_data boat);
 
 static void update_pos(Boat_data boat, double boat_speed)
 {
@@ -88,6 +40,55 @@ static void update_pos(Boat_data boat, double boat_speed)
     boat->pos.lon = radians_to_degrees(long_rad  + ang_vel_x * RATE);
 }
 
+void output_state(FILE *fp, Env_data env, Boat_data boat) {
+    fprintf(fp, OUTPUT_FORMAT, OUTPUT_ARGS);
+}
+#endif
+
+/* reads a data string into boat and enviroment data */
+int update_state(char *data, Env_data env, Boat_data boat)
+{
+    /* read env */
+    int re = sscanf(data, DATA_FORMAT_STRING, DATA_ARGS);
+    /* Skip badly formed lines */
+    if (re != NUM_MEMS) {
+        fprintf(stderr, "Error reading data, read in: %d / %d necessary "
+                "members\n", re, NUM_MEMS);
+        return 1;
+    }
+
+#ifdef DATA_GEN
+    double boat_angle = (M_PI * boat->heading) / 180,
+          /*              boat_speed = 10, */
+          boat_speed = ideal_speed(env, boat), 
+          wind_angle = (M_PI * env->wind_dir) / 180, 
+          /*              wind_angle = degrees_to_radians(env->wind_dir),*/
+          wind_speed = env->wind_speed;
+
+    update_pos(boat, boat_speed);
+    boat->boat_speed = boat_speed;
+
+    /* resolve boat vectors */
+    double boat_x = boat->boat_speed * cosf(boat_angle),
+          boat_y = boat->boat_speed * sinf(boat_angle);
+
+    /* resolve wind vectors */
+    double wind_x = wind_speed * cosf(wind_angle), 
+          wind_y = wind_speed * sinf(wind_angle);
+
+    /* calculate vector product */
+    double app_wind_x = boat_x + wind_x, app_wind_y = boat_y + wind_y;
+
+    /* determine vector components */
+    double temp = (180 * atan(app_wind_y / app_wind_x)) / M_PI;
+
+    env->app_wind_dir = (temp < 0) ? temp + 360 : temp;
+    env->app_wind_speed = sqrt(app_wind_x * app_wind_x + app_wind_y * app_wind_y);
+#endif
+
+    return 0;
+}
+
 
 unsigned read_waypts(FILE *fp, Position *waypts, unsigned size) {
     char *line = malloc(16); /* TODO 16 I believe is arbitrary and needs to change */
@@ -103,9 +104,5 @@ unsigned read_waypts(FILE *fp, Position *waypts, unsigned size) {
 
     free(line);
     return num_waypoints;
-}
-
-void output_state(FILE *fp, Env_data env, Boat_data boat) {
-    fprintf(fp, OUTPUT_FORMAT, OUTPUT_ARGS);
 }
 
