@@ -1,0 +1,42 @@
+#!/bin/sh
+
+set -e       # halt on first error
+
+link=all     # link all binaries by default
+linked=no    # track whether we linked
+DATA_GEN=-DDATA_GEN
+
+case $1 in  
+  -nolink) link=none ; shift ;;  # don't link
+  -link)   link="$2" ; shift ; shift ;;  # link only one binary
+  -nodata_gen) DATA_GEN= ; shift ;;
+esac
+
+# these flags max out warnings and debug info
+FLAGS="-g -Wall -Wextra -Werror -Wfatal-errors -pedantic"
+
+case $# in
+  0) set *.c ;; # if no args are given, compile all .c files
+esac
+
+# compile each argument to a .o file
+for cfile 
+do
+  gcc $DATA_GEN $FLAGS -c $cfile
+done
+
+case $link in
+  all|waypoint_expansion) gcc $FLAGS -o wpexpand waypoint_expansion.o waypointtest.o
+              linked=yes ;;
+esac
+
+
+rm -rf *.o  # make sure no object files are left hanging around
+
+# error if asked to link something we didn't recognize
+if [ $linked = no ]; then
+  case $link in  # if the -link option makes no sense, complain 
+    none) ;; # OK, do nothing
+    *) echo "`basename $0`: don't know how to link $link" 1>&2 ; exit 1 ;;
+  esac
+fi
