@@ -1,6 +1,6 @@
 /*   File: high_level.c
  *   By: Joshua Pfosi, Date: Fri Mar 21
- *   Last Updated: Sun May 11 21:05:07
+ *   Last Updated: Sun Sep 28 20:44:44
  *
  *   Implementation of navigator for algorithm
  *   Takes in input from sensor, parsed by main.c in a loop and decides
@@ -99,9 +99,11 @@ static int set_course(Navigator nav, Angle ang_to_waypt) {
     /* if the waypt is in the No-Go-Zone then we calculate the closer tack, and
      * set that to our "ideal" heading */
     if (is_upwind(wind_ang, ang_to_waypt)) {
+        fprintf(stderr, "wind_ang == %f, ang_to_waypt == %f\n\n\n\n", wind_ang, ang_to_waypt);
+        /* compute angle btwn heading and wind */
         Angle temp = heading - wind_ang;
-        temp = (temp < 180) ? temp : 180 - temp;
-        if (temp > 0) {
+        temp = (temp < 180) ? temp : 180 - temp; 
+        if (temp > 0) { /* 0 < temp <= 180 */
             ideal_ang = standardize(wind_ang + CLOSE_HAULED_ANGLE);
         } else {
             ideal_ang = standardize(wind_ang - CLOSE_HAULED_ANGLE);

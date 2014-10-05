@@ -1,6 +1,6 @@
 /*   File: helper.c
  *   By: Joshua Pfosi, Date: Sat May 10
- *   Last Updated: Sat May 10 21:55:55
+ *   Last Updated: Mon Sep 15 11:13:27
  *
  *   Implements helper functions
  */
@@ -23,8 +23,8 @@ inline Angle ang_btwn_positions(Position pos1, Position pos2) {
     return ang_in_degs;
 }
 
-/* Args: two Vectors
- * Purpose: Calculate the angle between to vectors
+/* Args: two angles
+ * Purpose: Calculate the angle between to angles
  * Returns the angle 
  */
 inline Angle ang_btwn_angles(Angle a1, Angle a2) {

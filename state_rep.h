@@ -1,10 +1,6 @@
 /*   File: state_rep.h
  *   By: Alex Tong, Date: Fri Mar 21
-<<<<<<< HEAD
- *   Last Updated: Sun May 11 21:26:21
-=======
- *   Last Updated: Sun May 11 21:26:21
->>>>>>> b99116d8dd97784ed44ead5e43ce186f43cd42f1
+ *   Last Updated: Mon Sep 15 11:19:31
  *
  *  Input formatting and general struct definitions
  */
@@ -13,6 +9,13 @@
 #define STATE_REP_H
 
 /* enviroment input defines */
+/* if data is not being generated internally, read in all 10 state variables
+ * otherwise, only read in the 4 environmental ones, as the boat state is 
+ * calculated internally
+ * 
+ * further, define output formats as the new state must be output so it can be 
+ * read in again
+ */
 #ifndef DATA_GEN
     #define NUM_MEMS           10
     #define DATA_FORMAT_STRING "%lf;%lf;%lf;%lf;%lf;%lf;%lf;%lf;%lf;%lf;\n"

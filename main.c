@@ -1,6 +1,6 @@
 /*   File: main.c
  *   By: Alex Tong, Date: Tue Mar 11
- *   Last Updated: Sat Mar 22 11:02:52
+ *   Last Updated: Mon Sep 15 10:58:57
  *
  *   main file for TRST project
  *   Args: Optional filename

@@ -1,10 +1,6 @@
 /*   File: env_data_gen.c
  *   By: Joshua Pfosi, Date: Mon Mar 24
-<<<<<<< HEAD
- *   Last Updated: Sat May 10 18:03:48
-=======
- *   Last Updated: Sun May 11 15:57:07
->>>>>>> b99116d8dd97784ed44ead5e43ce186f43cd42f1
+ *   Last Updated: Mon Sep 15 11:12:26
  *
  *   Data generation engine for navigation simulations
  *   Limitation: Without boat heading, cannot calculate apparent wind vector
@@ -41,7 +37,7 @@ void output_data(int num_lines, float wind_dir, float wind_speed, int shift) {
     /* allow fluctuations less than shift */
     int rand_num = 0, s = 0;
     float wind_veer = 0.0, wind_shift = 0.0;
-    srand(time(NULL));
+    srand(time(NULL)); /* seed random number generator */
     int shifting = 0, time = 0;
 
     for (; num_lines > 0; --num_lines, ++time) {
@@ -55,11 +51,19 @@ void output_data(int num_lines, float wind_dir, float wind_speed, int shift) {
                 shifting = 0;
                 time = 0;
             }
-            /* model environmental randomness */
+            /* model environmental randomness by taking shift number
+             * (0 => no shifting), and getting a random value to shift wind
+             * speed and direction by (s) and subtracting that from the max shift
+             * that's allowed (shift) */
             rand_num = rand();
             s = (shift != 0) ? rand_num % shift : 0;
             s = shift - s;
 
+            /* randomly choose change in direction and speed
+             * direction_change / speed change
+             * e.g. 0 / 0 => 0 change in direction and speed
+             * or   + / - => wind goes right, and looses speed
+             */
             switch (rand_num % 9) {
                 /* 0 / 0 */
                 case 0: break;
@@ -84,6 +88,7 @@ void output_data(int num_lines, float wind_dir, float wind_speed, int shift) {
             /* calculate shifts */
             temp_dir += wind_veer * SHIFT_SEVERITY_DIR;
             temp_speed += wind_shift * SHIFT_SEVERITY_SPEED;
+            /* TODO: should be temp_speed not wind_speed */
             if (wind_speed < 0) {
                 wind_speed = 0;
             }

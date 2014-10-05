@@ -45,6 +45,15 @@
     text: "Appr Wind Direction: " + root.app_wind_direction
   Label:
     text: "Appr Wind Speed: " + root.app_wind_speed
+<BoatData>:
+  Label:
+    text: "Rudder Position: " + root.rudder_angle
+  Label:
+    text: "Sail Position: " + root.sail_angle
+  Label:
+    text: "Speed: " + root.speed
+  Label:
+    text: "Direction: " + root.direction
   
 # Contains specific "decision" data that the algorithm made
 # e.g. Rudder and sail position as well as what it's current
@@ -52,18 +61,14 @@
 #<AlgorData>:
 
 # Shows a visual (and eventually text) representation of the rudder angle
-#<RudderPosition>:
-#        
-#<SailPosition>:
-#  canvas:
-#    Color:
-#      rgb: 0, 1, 0
-#    Color:
-#      rgb: 1, 0, 0
-#
-#<Velocity>:
-#  canvas:
-#    Color:
-#      rgb: 0, 1, 0
-#    Color:
-#      rgb: 1, 0, 0
+<RudderPosition>:
+  Label:
+    text: "Rudder Position: " + root.rudder_angle
+<SailPosition>:
+  Label:
+    text: "Sail Position: " + root.sail_angle
+<Velocity>:
+  Label:
+    text: "Speed: " + root.speed
+  Label:
+    text: "Direction: " + root.direction

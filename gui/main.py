@@ -55,8 +55,6 @@ from functools import partial
 # * Add latitude and longitude to the GUI on mouseover (i.e. the latlon of 
 #    the mouse)
 # * Any cosmetic changes you like!
-# * Add wind speed, apparent wind direction, and apparent wind speed test data
-#    to data_gen.py
 # * Add Pause button to pause callback
 
 maxLon =  -71.147237        # top right longitude
@@ -69,7 +67,7 @@ MAP_WIDTH  = 957
 MAP_HEIGHT = 700
 
 # width of side nav bars
-SIDEBAR = 200
+SIDEBAR = 0
 NAVBAR = 50
 
 # fake baud rate
@@ -88,7 +86,7 @@ def lonToX(targetLon):
     return ((targetLon - minLon) / (maxLon - minLon)) * (MAP_WIDTH - SIDEBAR - 1) + SIDEBAR
     
 class stdinRead(Thread):
-    #set as a thread to allow for lags in stdin or no stdin at all
+    # set as a thread to allow for lags in stdin or no stdin at all
     def __init__(self, *largs, **kwargs):
         super(stdinRead, self).__init__()
         self.daemon = True
@@ -158,87 +156,28 @@ class Map(Widget):
     pass
 
 class Updater(Widget):
-    def pullData(self, map, envdata, rudderpos, sailpos, veloc, dt):
+    def pullData(self, map, envdata, boatdata, dt):
         """
         Updates all gui elements with fresh data from stdin queue
         """
         try:
-            # The repetition of code here is sad but subtly difficult to abstract
             data_algor = self.stdin.pop()
-            #data_human = self.stdin.pop()
 
             # update algorithm lat/lon
             x = lonToX(data_algor['Lon'])
             y = latToY(data_algor['Lat'])
-            print 'Lon: %f' % x
-            print 'Lat: %f' % y
             marker = MarkerGreen(pos = (x - 5, y - 5))
             marker.layout = map
             map.add_widget(marker)
-
-            ## update human lat/lon
-            #print 'Lon real: %f' % data_human['Lon']
-            #print 'Latreal: %f' % data_human['Lon']
-            #x = lonToX(data_human['Lon'])
-            #y = latToY(data_human['Lat'])
-            #print 'Lon: %f' % x
-            #print 'Lat: %f' % y
-            #markerGreen = MarkerGreen(pos = (x - 5, y - 5))
-            #markerGreen.layout = map
-            #map.add_widget(markerGreen)
-
-
-            r = 75
-            rudderpos.canvas.clear()
-            # update algorithm rudder pos
-            theta = (math.pi * data_algor['RudPos']) / 180
-            with rudderpos.canvas:
-                Color(0, 1, 0)
-                Line(points = (100, 100, 100 + r * math.cos(theta), 100 + r * math.sin(theta)))
-
-            ## update human rudder pos 
-            #theta = (math.pi * data_human['RudPos']) / 180
-            #with rudderpos.canvas:
-            #    Color(0, 1, 0)
-            #    Line(points = (100, 100, 100 + r * math.cos(theta), 100 + r * math.sin(theta)))
-
-            sailpos.canvas.clear()
-            # update algorithm sail pos
-            theta = (math.pi * data_algor['SailPos']) / 180
-            print 'Radius: %f' % r
-            print 'Theta: %f' % theta
-            print r*math.cos(theta)
-            print r*math.sin(theta)
-            with sailpos.canvas:
-                Color(0, 1, 0)
-                Line(points = (100, 350, 100 + r * math.cos(theta), 350 + r * math.sin(theta)))
-
-            ## update human sail pos 
-            #theta = (math.pi * data_human['SailPos']) / 180
-            #with sailpos.canvas:
-            #    Color(0, 1, 0)
-            #    Line(points = (100, 350, 100 + r * math.cos(theta), 350 + r * math.sin(theta)))
-
-            #veloc.canvas.clear()
-            #r = data_algor['Speed'] + 75;
-
-            # update algorithm velocity
-            theta = (math.pi * data_algor['Heading']) / 180
-            veloc.canvas.clear()
-            with veloc.canvas:
-                Color(0, 1, 0)
-                Line(points = (100, 583, 100 + r * math.cos(theta), 583 + r * math.sin(theta)))
-
-            ## update human velocity 
-            #theta = (math.pi * data_human['Heading']) / 180
-            #with veloc.canvas:
-            #    Color(0, 1, 0)
-            #    Line(points = (100, 583, 100 + r * math.cos(theta), 583 + r * math.sin(theta)))
 
             envdata.wind_direction = data_algor['Wind Dir']
             envdata.wind_speed = data_algor['Wind Speed']
             envdata.app_wind_direction = data_algor['App Wind Dir']
             envdata.app_wind_speed = data_algor['App Wind Speed']
+            boatdata.speed = str(data_algor['Speed'])
+            boatdata.direction = str(data_algor['Heading'])
+            boatdata.rudder_angle = str(data_algor['RudPos'])
+            boatdata.sail_angle = str(data_algor['SailPos'])
 
         except Exception as e:
             print(e)
@@ -247,6 +186,7 @@ class Updater(Widget):
 class NavBar(GridLayout):
     def build(self):
         self.add_widget(self.envdata)
+        self.add_widget(self.boatdata)
         self.add_widget(self.map)
 
 class EnvData(GridLayout):
@@ -257,22 +197,25 @@ class EnvData(GridLayout):
     app_wind_direction = StringProperty('')
     app_wind_speed = StringProperty('')
 
-class AlgorData(GridLayout):
-    def build(self):
-        self.add_widget(self.rp)
-        self.add_widget(self.sp)
-        self.add_widget(self.v)
+class BoatData(GridLayout):
+    speed = StringProperty('')
+    direction = StringProperty('')
+    sail_angle = StringProperty('')
+    rudder_angle = StringProperty('')
 
 class RudderPosition(Widget):
+    rudder_angle = StringProperty('')
     def build(self):
-        #self.add_widget(self.disp)
         pass
 
 class Velocity(Widget):
+    speed = StringProperty('')
+    direction = StringProperty('')
     def build(self):
         pass
 
 class SailPosition(Widget):
+    sail_angle = StringProperty('')
     def build(self):
         pass
 
@@ -284,30 +227,23 @@ class gui(App):
 
     def build(self):
         # declare outter layout to hold inner elements
-        layout = GridLayout(cols = 2, cols_minimum = {0 : SIDEBAR, 1 : MAP_WIDTH})
+        layout = GridLayout(cols = 1, cols_minimum = {0 : MAP_WIDTH})
 
-        # holds algorithm rudder / sail angles 
-        algordata = AlgorData(rows = 3)
-        algordata.rp = RudderPosition()
-        algordata.sp = SailPosition()
-        algordata.v = Velocity()
-        algordata.build()
-
-        # holds environmental data
-        navbar = NavBar(rows = 2, rows_minimum = {0 : NAVBAR, 1: MAP_HEIGHT})
+        # displays environmental and boat data
+        navbar = NavBar(rows = 3, rows_minimum = {0 : NAVBAR, 1 : NAVBAR, 2: MAP_HEIGHT})
         navbar.envdata = EnvData(cols = 4)
+        navbar.boatdata = BoatData(cols = 4)
         navbar.map = Map()
         navbar.build()
 
-        layout.add_widget(algordata)
+        #layout.add_widget(algordata)
         layout.add_widget(navbar)
 
         updater = Updater()
         updater.stdin = stdinRead(navbar.map)
         updater.stdin.start()
 
-        Clock.schedule_interval(partial(updater.pullData, navbar.map, navbar.envdata, 
-            algordata.rp, algordata.sp, algordata.v), BAUD_RATE)
+        Clock.schedule_interval(partial(updater.pullData, navbar.map, navbar.envdata, navbar.boatdata), BAUD_RATE)
 
         return layout
 
