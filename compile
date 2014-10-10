@@ -31,6 +31,11 @@ case $link in
 esac
 
 case $link in
+  all|waypoint_expansion) gcc $FLAGS -o wpexpand waypoint_expansion.o waypoint_expand_main.o
+              linked=yes ;;
+esac
+
+case $link in
   all|gen_data) gcc $FLAGS -o gen_data env_data_gen.o
               linked=yes ;;
 esac

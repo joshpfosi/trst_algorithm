@@ -1,12 +1,7 @@
 /*   File: state_rep.h
  *   By: Alex Tong, Date: Fri Mar 21
-<<<<<<< HEAD
  *   Last Updated: Sun May 11 21:26:21
-=======
- *   Last Updated: Sun May 11 21:26:21
->>>>>>> b99116d8dd97784ed44ead5e43ce186f43cd42f1
- *
- *  Input formatting and general struct definitions
+ *   Input formatting and general struct definitions
  */
 
 #ifndef STATE_REP_H
